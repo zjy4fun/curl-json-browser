@@ -1,52 +1,52 @@
 # json-open
 
-把 JSON 直接在浏览器里可折叠查看（支持 `stdin` 和行内 JSON 字符串）。
+Open JSON in your browser with a collapsible tree view (supports stdin and inline JSON text).
 
-> 一个给命令行用户准备的「JSON 临时观察器」：输入 JSON，立刻打开浏览器，以树形结构查看复杂响应。
-
----
-
-## 为什么做这个
-
-在终端里看 JSON，常见痛点是：
-
-- 内容太长，滚动和定位困难
-- 嵌套层级深，不容易快速理解结构
-- 临时调试时不想引入重型工具
-
-`json-open` 的目标很简单：**把“看 JSON”这一步变得顺手**。
+> A tiny CLI for command-line users: feed JSON, instantly inspect it in a browser with foldable structure.
 
 ---
 
-## 功能特性
+## Why this exists
 
-- ✅ 支持管道输入：`curl ... | json`
-- ✅ 支持行内 JSON：`json '{"a":1}'`
-- ✅ 浏览器树形展示（可折叠/展开）
-- ✅ 一键全展开 / 全收起
-- ✅ 本地临时文件渲染，不上传数据
-- ✅ 跨平台打开浏览器（macOS / Linux / Windows）
+Reading JSON in a terminal is often painful:
+
+- Long output is hard to scan
+- Deep nesting is hard to understand quickly
+- Heavy tools feel overkill for quick debugging
+
+`json-open` keeps this simple: **make JSON inspection fast and visual**.
 
 ---
 
-## 安装
+## Features
 
-### 方式一：GitHub Packages（当前主分发）
+- ✅ Pipe input: `curl ... | json`
+- ✅ Inline JSON: `json '{"a":1}'`
+- ✅ Collapsible tree view in browser
+- ✅ Expand all / Collapse all buttons
+- ✅ Rendered from local temp file (no remote upload)
+- ✅ Cross-platform browser open (macOS / Linux / Windows)
 
-先配置 npm 使用 GitHub Packages：
+---
+
+## Installation
+
+### Option A: GitHub Packages (current primary channel)
+
+Configure npm for GitHub Packages first:
 
 ```bash
 echo "@zjy4fun:registry=https://npm.pkg.github.com" >> ~/.npmrc
 echo "//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN" >> ~/.npmrc
 ```
 
-然后安装：
+Then install:
 
 ```bash
 npm i -g @zjy4fun/json-open
 ```
 
-### 方式二：本地开发安装
+### Option B: Local development install
 
 ```bash
 git clone https://github.com/zjy4fun/json-open.git
@@ -55,99 +55,99 @@ npm install
 npm link
 ```
 
-安装后可直接使用 `json` 命令。
+After that, the `json` command is available globally.
 
 ---
 
-## 快速开始
+## Quick start
 
 ```bash
-# 1) 来自 API 响应
+# 1) API response
 curl https://jsonplaceholder.typicode.com/todos/1 | json
 
-# 2) 行内 JSON
+# 2) Inline JSON
 json '{"hello":"world","list":[1,2,3]}'
 
-# 3) 文件内容
+# 3) JSON file content
 cat response.json | json
 ```
 
-执行后会自动打开浏览器，展示 JSON 树形视图。
+The command opens your browser and shows a JSON tree view.
 
 ---
 
-## 常见应用场景
+## Common use cases
 
-### 1. API 调试
-快速查看接口响应结构，定位字段和嵌套层级。
+1. **API debugging**  
+   Inspect response shape quickly, especially nested data.
 
-### 2. 联调排错
-后端返回结构变更时，用于快速比对是否缺字段/类型异常。
+2. **Backend/frontend integration checks**  
+   Verify missing fields or type mismatches after API changes.
 
-### 3. 临时数据检查
-拿到一段 JSON（日志、消息队列、缓存快照）时，直接可视化排查。
+3. **Ad-hoc JSON inspection**  
+   Visualize JSON copied from logs, queues, or snapshots.
 
-### 4. 演示与沟通
-和同事讨论响应结构时，用可折叠视图更直观。
+4. **Team discussion/demo**  
+   Share a clearer structure view when discussing payloads.
 
 ---
 
-## 命令说明
+## Command behavior
 
 ```bash
 json
 ```
 
-输入来源：
+Input source:
 
-- 管道输入（stdin）
-- 第一个参数作为 JSON 字符串
+- stdin (pipe)
+- inline argument JSON string
 
-示例：
+Example:
 
 ```bash
 json '{"ok":true}'
 ```
 
-无输入时会给出 usage 提示。
+If no input is provided, it prints usage help.
 
 ---
 
-## 发布与分发
+## Release & distribution
 
-仓库已内置 GitHub Actions：
+Included GitHub Actions workflows:
 
-- `CI`：基础测试流程
-- `Publish to GitHub Packages`：发布到 GPR
-- `Publish to npm (Trusted Publishing)`：预留 npm OIDC 发布流程
+- `CI`: basic validation flow
+- `Publish to GitHub Packages`: publish to GPR
+- `Publish to npm (Trusted Publishing)`: reserved for npm OIDC flow
 
-当前主分发方式为 GitHub Packages。
+Current primary distribution: **GitHub Packages**.
 
 ---
 
-## 参与贡献
+## Contributing
 
-欢迎提 Issue / PR，一起把这个小工具做得更顺手。
+Issues and PRs are welcome.
 
-### 贡献方向建议
+### Good contribution ideas
 
-- 更好的错误提示（例如 JSON 语法定位）
-- 支持主题切换（亮色/暗色）
-- 支持从文件路径直接读取（如 `json ./data.json`）
-- 更丰富的节点交互（搜索、高亮、路径复制）
+- Better error diagnostics (e.g. JSON syntax location)
+- Theme switch (light/dark)
+- Direct file path support (e.g. `json ./data.json`)
+- Rich interactions (search, highlight, copy JSON path)
 
-### 本地开发
+### Local development
 
 ```bash
 npm install
 npm test
 ```
 
-提交前请确保：
+Before submitting:
 
-- 代码可运行
-- README 示例可复现
-- 保持改动小而清晰
+- Ensure code runs correctly
+- Ensure README examples still work
+- Keep changes focused and clear
 
 ---
 
