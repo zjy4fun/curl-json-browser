@@ -2,7 +2,16 @@
 
 把 JSON 直接在浏览器里可折叠查看（支持 `stdin` 和行内 JSON 字符串）。
 
-## 安装
+## 安装（GitHub Packages）
+
+先配置 npm 使用 GitHub Packages：
+
+```bash
+echo "@zjy4fun:registry=https://npm.pkg.github.com" >> ~/.npmrc
+echo "//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN" >> ~/.npmrc
+```
+
+然后安装：
 
 ```bash
 npm i -g @zjy4fun/json-open
@@ -29,17 +38,15 @@ npm install
 echo '{"hello":"world","list":[1,2,3]}' | node bin/json.js
 ```
 
-## 发布到 npm（推荐：Trusted Publishing / OIDC）
+## 发布到 GitHub Packages（当前分发方式）
 
-现在使用 GitHub Actions 的 Trusted Publishing（OIDC），无需 `NPM_TOKEN`。
+仓库已提供 workflow：`.github/workflows/publish-gpr.yml`
 
-1. 在 npm 包设置里启用 Trusted Publishing，并绑定 GitHub 仓库：
-   - Repository: `zjy4fun/json-open`
-   - Workflow: `.github/workflows/publish.yml`
-2. 确认 workflow 具备 `id-token: write`（已配置）
-3. 在 GitHub 上创建 Release（或手动触发 workflow）即可发布
+触发方式：
+1. GitHub Actions 手动运行 `Publish to GitHub Packages`
+2. 或发布 GitHub Release 自动触发
 
-> 当前发布命令已使用：`npm publish --access public --provenance`
+发布权限使用内置 `GITHUB_TOKEN`（`packages: write`）。
 
 ## 发布到 GitHub
 
