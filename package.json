@@ -1,5 +1,5 @@
 {
-  "name": "@zhaijiayu/json-browser-cli",
+  "name": "@zjy4fun/curl-json-browser",
   "version": "0.1.0",
   "description": "Open piped JSON in a browser with collapsible tree view",
   "type": "module",

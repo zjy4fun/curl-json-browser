@@ -5,7 +5,7 @@
 ## 安装
 
 ```bash
-npm i -g @zhaijiayu/json-browser-cli
+npm i -g @zjy4fun/curl-json-browser
 ```
 
 ## 用法
