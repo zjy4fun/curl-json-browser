@@ -25,17 +25,17 @@ npm install
 echo '{"hello":"world","list":[1,2,3]}' | node bin/json.js
 ```
 
-## 发布到 npm
+## 发布到 npm（推荐：Trusted Publishing / OIDC）
 
-1. 修改 `package.json` 中 `name`（确保未被占用）
-2. 登录 npm：
-   ```bash
-   npm login
-   ```
-3. 发布：
-   ```bash
-   npm publish --access public
-   ```
+现在使用 GitHub Actions 的 Trusted Publishing（OIDC），无需 `NPM_TOKEN`。
+
+1. 在 npm 包设置里启用 Trusted Publishing，并绑定 GitHub 仓库：
+   - Repository: `zjy4fun/curl-json-browser`
+   - Workflow: `.github/workflows/publish.yml`
+2. 确认 workflow 具备 `id-token: write`（已配置）
+3. 在 GitHub 上创建 Release（或手动触发 workflow）即可发布
+
+> 当前发布命令已使用：`npm publish --access public --provenance`
 
 ## 发布到 GitHub
 
@@ -48,4 +48,4 @@ git remote add origin git@github.com:<your-name>/json-browser-cli.git
 git push -u origin main
 ```
 
-建议再配置一个 GitHub Actions，在 push tag 时自动 npm publish。
+已内置 GitHub Actions 发布流程（Trusted Publishing, OIDC）。
