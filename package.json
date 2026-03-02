@@ -1,6 +1,6 @@
 {
   "name": "@zjy4fun/json-open",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Open JSON (stdin or inline text) in a browser with collapsible tree view",
   "type": "module",
   "bin": {
@@ -20,7 +20,8 @@
   "author": "",
   "license": "MIT",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "engines": {
     "node": ">=18"
