@@ -107,9 +107,16 @@ json
 - stdin（管道）
 - 命令行参数中的 JSON 字符串
 
+参数选项：
+
+- `-h, --help` 显示帮助
+- `-v, --version` 显示版本
+
 示例：
 
 ```bash
+json --help
+json --version
 json '{"ok":true}'
 ```
 

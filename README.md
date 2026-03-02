@@ -107,9 +107,16 @@ Input source:
 - stdin (pipe)
 - inline argument JSON string
 
-Example:
+Options:
+
+- `-h, --help` show help
+- `-v, --version` show CLI version
+
+Examples:
 
 ```bash
+json --help
+json --version
 json '{"ok":true}'
 ```
 
