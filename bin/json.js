@@ -1,8 +1,34 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises'
+import fsSync from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { spawn } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
+
+function getCliVersion() {
+  try {
+    const currentFile = fileURLToPath(import.meta.url)
+    const packageJsonPath = path.resolve(path.dirname(currentFile), '..', 'package.json')
+    const packageJson = JSON.parse(fsSync.readFileSync(packageJsonPath, 'utf8'))
+    return packageJson.version
+  } catch {
+    return 'unknown'
+  }
+}
+
+function printHelp() {
+  console.log(`json-open
+
+Usage:
+  json <json-string>
+  cat data.json | json
+  curl https://example.com/api | json
+
+Options:
+  -h, --help     Show help
+  -v, --version  Show version`)
+}
 
 function readStdin() {
   return new Promise((resolve, reject) => {
@@ -178,10 +204,22 @@ function openInBrowser(filePath) {
 }
 
 async function main() {
-  const inlineInput = process.argv.slice(2).join(' ').trim()
+  const args = process.argv.slice(2)
+
+  if (args.includes('-h') || args.includes('--help')) {
+    printHelp()
+    process.exit(0)
+  }
+
+  if (args.includes('-v') || args.includes('--version')) {
+    console.log(getCliVersion())
+    process.exit(0)
+  }
+
+  const inlineInput = args.join(' ').trim()
 
   if (!inlineInput && process.stdin.isTTY) {
-    console.error('Usage: curl https://example.com | json\n   or: json "{\"hello\":\"world\"}"')
+    printHelp()
     process.exit(1)
   }
 
