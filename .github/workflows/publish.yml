@@ -9,7 +9,6 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    # OIDC Trusted Publishing 需要指定 environment
     environment: release
     permissions:
       contents: read
@@ -22,7 +21,6 @@ jobs:
         with:
           node-version: 22
           registry-url: 'https://registry.npmjs.org'
-          cache: 'npm'
 
       - run: npm ci
       - run: npm test --if-present
@@ -34,4 +32,9 @@ jobs:
           PKG_VERSION=$(node -p "require('./package.json').version")
           [ "$TAG_VERSION" = "$PKG_VERSION" ] || (echo "Tag $TAG_VERSION != package.json $PKG_VERSION" && exit 1)
 
+      # OIDC Trusted Publishing: npm automatically uses the OIDC token
+      # when --provenance is set and id-token: write permission is granted.
+      # No NPM_TOKEN secret needed.
       - run: npm publish --access public --provenance
+        env:
+          NPM_CONFIG_PROVENANCE: true

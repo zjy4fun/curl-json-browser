@@ -1,6 +1,6 @@
 {
   "name": "@zjy4fun/json-open",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Open JSON (stdin or inline text) in a browser with collapsible tree view",
   "type": "module",
   "bin": {
