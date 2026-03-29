@@ -20,7 +20,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: 'https://registry.npmjs.org'
+          # 不设置 registry-url，让 npm 自己处理 OIDC 认证
+          cache: 'npm'
 
       - run: npm ci
       - run: npm test --if-present
@@ -32,9 +33,7 @@ jobs:
           PKG_VERSION=$(node -p "require('./package.json').version")
           [ "$TAG_VERSION" = "$PKG_VERSION" ] || (echo "Tag $TAG_VERSION != package.json $PKG_VERSION" && exit 1)
 
-      # OIDC Trusted Publishing: npm automatically uses the OIDC token
-      # when --provenance is set and id-token: write permission is granted.
-      # No NPM_TOKEN secret needed.
-      - run: npm publish --access public --provenance
-        env:
-          NPM_CONFIG_PROVENANCE: true
+      # OIDC Trusted Publishing:
+      # 不设置 NODE_AUTH_TOKEN，npm 会自动通过 OIDC 获取 token
+      - name: Publish to npm with provenance
+        run: npm publish --access public --provenance
