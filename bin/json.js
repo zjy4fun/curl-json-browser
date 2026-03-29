@@ -385,16 +385,17 @@ function toHtml(jsonObj, deepParsedObj) {
 
       highlights = Array.from(view.querySelectorAll('mark.highlight'))
       if (highlights.length > 0) {
-        // 展开所有包含匹配的 <details>
+        // 展开所有包含匹配项的 <details>（从内到外逐层展开）
         highlights.forEach(h => {
-          let el = h.parentElement
-          while (el && el !== view) {
-            if (el.tagName === 'DETAILS') el.open = true
-            el = el.parentElement
+          let el = h.closest('details')
+          while (el) {
+            el.open = true
+            el = el.parentElement ? el.parentElement.closest('details') : null
           }
         })
         currentIdx = 0
-        scrollToCurrent()
+        // 等 DOM 重新布局后再滚动，确保展开动画完成
+        requestAnimationFrame(() => scrollToCurrent())
       }
       updateCount()
     }
@@ -414,6 +415,12 @@ function toHtml(jsonObj, deepParsedObj) {
         h.classList.toggle('current', i === currentIdx)
       })
       if (highlights[currentIdx]) {
+        // 确保当前高亮项所在的所有 <details> 都是展开的
+        let el = highlights[currentIdx].closest('details')
+        while (el) {
+          el.open = true
+          el = el.parentElement ? el.parentElement.closest('details') : null
+        }
         highlights[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
       updateCount()
