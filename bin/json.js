@@ -224,12 +224,71 @@ function toHtml(jsonObj, deepParsedObj) {
     .null { color: #cbd5e1; }
     .symbol { color: #c4b5fd; }
     .meta { color: #64748b; }
+    /* 搜索框 */
+    .search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .search-wrap input {
+      border: 1px solid #475569;
+      background: #1e293b;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 13px;
+      font-family: inherit;
+      width: 200px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-wrap input:focus {
+      border-color: #58a6ff;
+    }
+    .search-wrap input::placeholder {
+      color: #64748b;
+    }
+    .search-count {
+      font-size: 12px;
+      color: #64748b;
+      min-width: 60px;
+    }
+    .search-nav button {
+      padding: 4px 8px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+    /* 搜索高亮 */
+    mark.highlight {
+      background: #f0883e;
+      color: #0d1117;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+    mark.highlight.current {
+      background: #58a6ff;
+      color: #fff;
+      box-shadow: 0 0 0 2px rgba(88,166,255,0.4);
+    }
+    /* 搜索时隐藏不匹配的行 */
+    .search-active .line.hidden-by-search,
+    .search-active li.hidden-by-search {
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class=\"toolbar\">
     <button id=\"expand-all\">Expand all</button>
     <button id=\"collapse-all\">Collapse all</button>
+    <div class=\"search-wrap\">
+      <input type=\"text\" id=\"search-input\" placeholder=\"Search...\" autocomplete=\"off\" />
+      <span class=\"search-count\" id=\"search-count\"></span>
+      <span class=\"search-nav\">
+        <button id=\"search-prev\" title=\"Previous (Shift+Enter)\">▲</button>
+        <button id=\"search-next\" title=\"Next (Enter)\">▼</button>
+      </span>
+    </div>
     <div class=\"toggle-wrap${hasDiff ? '' : ' hidden'}\" title=\"Parse embedded JSON strings inside values\">
       <span>Parse JSON strings</span>
       <label class=\"toggle\">
@@ -257,8 +316,152 @@ function toHtml(jsonObj, deepParsedObj) {
           rawView.style.display = ''
           parsedView.style.display = 'none'
         }
+        // 切换视图后重新搜索
+        if (searchInput.value.trim()) doSearch()
       })
     }
+
+    // ===== 搜索功能 =====
+    const searchInput = document.getElementById('search-input')
+    const searchCount = document.getElementById('search-count')
+    const searchPrev = document.getElementById('search-prev')
+    const searchNext = document.getElementById('search-next')
+    let highlights = []
+    let currentIdx = -1
+
+    function getActiveView() {
+      return parsedView.style.display === 'none' ? rawView : parsedView
+    }
+
+    function clearSearch() {
+      // 移除所有高亮
+      document.querySelectorAll('mark.highlight').forEach(mark => {
+        const parent = mark.parentNode
+        parent.replaceChild(document.createTextNode(mark.textContent), mark)
+        parent.normalize()
+      })
+      highlights = []
+      currentIdx = -1
+      searchCount.textContent = ''
+      document.body.classList.remove('search-active')
+    }
+
+    function doSearch() {
+      clearSearch()
+      const query = searchInput.value.trim()
+      if (!query) return
+
+      const view = getActiveView()
+      const regex = new RegExp(query.replace(/[.*+?^\${}()|[\\]\\\\]/g, '\\\\$&'), 'gi')
+
+      // 遍历所有文本节点进行高亮
+      const walker = document.createTreeWalker(view, NodeFilter.SHOW_TEXT, null)
+      const textNodes = []
+      while (walker.nextNode()) textNodes.push(walker.currentNode)
+
+      textNodes.forEach(node => {
+        const text = node.textContent
+        if (!regex.test(text)) return
+        regex.lastIndex = 0
+
+        const frag = document.createDocumentFragment()
+        let lastIdx = 0
+        let match
+        while ((match = regex.exec(text)) !== null) {
+          if (match.index > lastIdx) {
+            frag.appendChild(document.createTextNode(text.slice(lastIdx, match.index)))
+          }
+          const mark = document.createElement('mark')
+          mark.className = 'highlight'
+          mark.textContent = match[0]
+          frag.appendChild(mark)
+          lastIdx = regex.lastIndex
+        }
+        if (lastIdx < text.length) {
+          frag.appendChild(document.createTextNode(text.slice(lastIdx)))
+        }
+        node.parentNode.replaceChild(frag, node)
+      })
+
+      highlights = Array.from(view.querySelectorAll('mark.highlight'))
+      if (highlights.length > 0) {
+        // 展开所有包含匹配的 <details>
+        highlights.forEach(h => {
+          let el = h.parentElement
+          while (el && el !== view) {
+            if (el.tagName === 'DETAILS') el.open = true
+            el = el.parentElement
+          }
+        })
+        currentIdx = 0
+        scrollToCurrent()
+      }
+      updateCount()
+    }
+
+    function updateCount() {
+      if (highlights.length === 0 && searchInput.value.trim()) {
+        searchCount.textContent = 'No match'
+      } else if (highlights.length > 0) {
+        searchCount.textContent = (currentIdx + 1) + ' / ' + highlights.length
+      } else {
+        searchCount.textContent = ''
+      }
+    }
+
+    function scrollToCurrent() {
+      highlights.forEach((h, i) => {
+        h.classList.toggle('current', i === currentIdx)
+      })
+      if (highlights[currentIdx]) {
+        highlights[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      updateCount()
+    }
+
+    function goNext() {
+      if (highlights.length === 0) return
+      currentIdx = (currentIdx + 1) % highlights.length
+      scrollToCurrent()
+    }
+
+    function goPrev() {
+      if (highlights.length === 0) return
+      currentIdx = (currentIdx - 1 + highlights.length) % highlights.length
+      scrollToCurrent()
+    }
+
+    // 输入时实时搜索（防抖 200ms）
+    let debounceTimer
+    searchInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(doSearch, 200)
+    })
+
+    // Enter = 下一个，Shift+Enter = 上一个
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        e.shiftKey ? goPrev() : goNext()
+      }
+      if (e.key === 'Escape') {
+        searchInput.value = ''
+        clearSearch()
+        searchInput.blur()
+      }
+    })
+
+    searchNext.addEventListener('click', goNext)
+    searchPrev.addEventListener('click', goPrev)
+
+    // Ctrl+F / Cmd+F 聚焦搜索框
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault()
+        searchInput.focus()
+        searchInput.select()
+      }
+    })
   </script>
 </body>
 </html>`
