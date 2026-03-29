@@ -9,7 +9,6 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    environment: release
     permissions:
       contents: read
       id-token: write
@@ -20,8 +19,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          # 不设置 registry-url，让 npm 自己处理 OIDC 认证
-          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
 
       - run: npm ci
       - run: npm test --if-present
@@ -33,7 +31,6 @@ jobs:
           PKG_VERSION=$(node -p "require('./package.json').version")
           [ "$TAG_VERSION" = "$PKG_VERSION" ] || (echo "Tag $TAG_VERSION != package.json $PKG_VERSION" && exit 1)
 
-      # OIDC Trusted Publishing:
-      # 不设置 NODE_AUTH_TOKEN，npm 会自动通过 OIDC 获取 token
-      - name: Publish to npm with provenance
-        run: npm publish --access public --provenance
+      - run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
