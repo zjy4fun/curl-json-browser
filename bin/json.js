@@ -100,8 +100,11 @@ function valueToHtml(value, key = null) {
   return `<div class=\"line\">${keyHtml}<span>${escapeHtml(String(value))}</span></div>`
 }
 
-function toHtml(jsonObj) {
-  const body = valueToHtml(jsonObj)
+function toHtml(jsonObj, deepParsedObj) {
+  const rawBody = valueToHtml(jsonObj)
+  const parsedBody = valueToHtml(deepParsedObj)
+  // 检测是否有差异（有嵌套 JSON 字符串可以展开）
+  const hasDiff = JSON.stringify(jsonObj) !== JSON.stringify(deepParsedObj)
   return `<!doctype html>
 <html lang=\"en\">
 <head>
@@ -130,6 +133,8 @@ function toHtml(jsonObj) {
       margin-bottom: 16px;
       display: flex;
       gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
     }
     button {
       border: 1px solid #475569;
@@ -141,6 +146,51 @@ function toHtml(jsonObj) {
     }
     button:hover {
       background: #334155;
+    }
+    /* 开关样式 */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .toggle-wrap.hidden { display: none; }
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      cursor: pointer;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle .slider {
+      position: absolute;
+      inset: 0;
+      background: #334155;
+      border-radius: 22px;
+      transition: background 0.2s;
+    }
+    .toggle .slider::before {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: 3px;
+      bottom: 3px;
+      background: #e2e8f0;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle input:checked + .slider {
+      background: #58a6ff;
+    }
+    .toggle input:checked + .slider::before {
+      transform: translateX(18px);
     }
     details {
       margin-left: 16px;
@@ -180,12 +230,35 @@ function toHtml(jsonObj) {
   <div class=\"toolbar\">
     <button id=\"expand-all\">Expand all</button>
     <button id=\"collapse-all\">Collapse all</button>
+    <div class=\"toggle-wrap${hasDiff ? '' : ' hidden'}\" title=\"Parse embedded JSON strings inside values\">
+      <span>Parse JSON strings</span>
+      <label class=\"toggle\">
+        <input type=\"checkbox\" id=\"deep-parse-toggle\" />
+        <span class=\"slider\"></span>
+      </label>
+    </div>
   </div>
-  <main>${body}</main>
+  <main id=\"raw-view\">${rawBody}</main>
+  <main id=\"parsed-view\" style=\"display:none\">${parsedBody}</main>
   <script>
-    const details = () => Array.from(document.querySelectorAll('details'))
+    const details = () => Array.from(document.querySelectorAll('main:not([style*=\"display:none\"]) details'))
     document.getElementById('expand-all').addEventListener('click', () => details().forEach((d) => d.open = true))
     document.getElementById('collapse-all').addEventListener('click', () => details().forEach((d) => d.open = false))
+
+    const toggle = document.getElementById('deep-parse-toggle')
+    const rawView = document.getElementById('raw-view')
+    const parsedView = document.getElementById('parsed-view')
+    if (toggle) {
+      toggle.addEventListener('change', () => {
+        if (toggle.checked) {
+          rawView.style.display = 'none'
+          parsedView.style.display = ''
+        } else {
+          rawView.style.display = ''
+          parsedView.style.display = 'none'
+        }
+      })
+    }
   </script>
 </body>
 </html>`
@@ -309,10 +382,10 @@ async function main() {
     }
   }
 
-  // 递归检查解析后的对象中是否有嵌套的 JSON 字符串值，自动展开
-  parsed = deepParseJsonStrings(parsed)
+  // 生成深度解析版本（展开嵌套 JSON 字符串），但默认不启用
+  const deepParsed = deepParseJsonStrings(parsed)
 
-  const html = toHtml(parsed)
+  const html = toHtml(parsed, deepParsed)
   const filePath = path.join(os.tmpdir(), `json-viewer-${Date.now()}.html`)
   await fs.writeFile(filePath, html, 'utf8')
   openInBrowser(filePath)
