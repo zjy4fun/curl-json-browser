@@ -28,6 +28,8 @@ Reading JSON in terminal is often painful:
 - ✅ Collapsible tree view
 - ✅ Expand all / Collapse all
 - ✅ Local temp file rendering (no remote upload)
+- ✅ **Auto-parse serialized JSON strings** (escaped/double-encoded)
+- ✅ **Deep nested JSON string expansion** (auto-unwrap JSON strings inside objects)
 
 ---
 
@@ -107,12 +109,39 @@ If no input is provided, usage help is printed.
 
 ---
 
+## Serialized JSON String Support
+
+`json-open` now automatically handles serialized/escaped JSON strings — a common pain point when working with logs, databases, and APIs.
+
+```bash
+# Double-encoded JSON string (e.g. from database or API response body)
+json '"{\"name\":\"test\",\"age\":25}"'
+# → auto-detects and parses as { "name": "test", "age": 25 }
+
+# Nested JSON strings inside objects
+json '{"status":"ok","data":"{\"users\":[{\"id\":1}]}"}'
+# → auto-expands "data" field into a real JSON tree
+
+# Multi-level serialization
+json '"\"[1,2,3]\""'
+# → recursively unwraps to [1, 2, 3]
+```
+
+This works for:
+- Escaped JSON from `JSON.stringify()` output
+- Log files with embedded JSON payloads
+- API responses where a field contains a JSON string
+- Database columns storing serialized JSON
+
+---
+
 ## Common Use Cases
 
 - API debugging (inspect response shape quickly)
 - Backend/frontend contract checks
 - Ad-hoc JSON visualization from logs
 - Payload discussion/demo with teammates
+- **Inspecting serialized JSON from databases or message queues**
 
 ---
 

@@ -191,6 +191,37 @@ function toHtml(jsonObj) {
 </html>`
 }
 
+/**
+ * 递归遍历 JSON 对象，尝试将值为 JSON 字符串的字段自动解析为对象
+ * 比如 { "data": "{\"name\":\"test\"}" } → { "data": { "name": "test" } }
+ * 这在 API 响应和日志中非常常见
+ */
+function deepParseJsonStrings(obj) {
+  if (obj === null || obj === undefined) return obj
+  if (Array.isArray(obj)) return obj.map(deepParseJsonStrings)
+  if (typeof obj === 'object') {
+    const result = {}
+    for (const [key, value] of Object.entries(obj)) {
+      result[key] = deepParseJsonStrings(value)
+    }
+    return result
+  }
+  if (typeof obj === 'string') {
+    const trimmed = obj.trim()
+    // 只尝试解析看起来像 JSON 对象或数组的字符串
+    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+        (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+      try {
+        const parsed = JSON.parse(trimmed)
+        return deepParseJsonStrings(parsed)
+      } catch {
+        return obj
+      }
+    }
+  }
+  return obj
+}
+
 function openInBrowser(filePath) {
   const platform = process.platform
   const command = platform === 'darwin' ? 'open' : platform === 'win32' ? 'start' : 'xdg-open'
@@ -234,9 +265,52 @@ async function main() {
   try {
     parsed = JSON.parse(input)
   } catch {
-    console.error('Input is not valid JSON.')
-    process.exit(1)
+    // 尝试处理 JSON 序列化后的字符串（双重转义）
+    // 比如："{\"name\":\"test\"}" 或 '"{\\\"name\\\":\\\"test\\\"}"'
+    // 这种情况常见于：日志输出、API 响应中嵌套的 JSON 字符串、数据库存储的 JSON
+    try {
+      // 第一步：去掉首尾引号（如果有的话）
+      let cleaned = input.trim()
+      if ((cleaned.startsWith('"') && cleaned.endsWith('"')) ||
+          (cleaned.startsWith("'") && cleaned.endsWith("'"))) {
+        cleaned = cleaned.slice(1, -1)
+      }
+      // 第二步：处理转义字符
+      // 替换 \" → "，\\ → \，\n → 换行，\t → tab
+      cleaned = cleaned
+        .replace(/\\"/g, '"')
+        .replace(/\\\\/g, '\\')
+        .replace(/\\n/g, '\n')
+        .replace(/\\t/g, '\t')
+        .replace(/\\r/g, '\r')
+      parsed = JSON.parse(cleaned)
+      console.log('ℹ️  Detected serialized JSON string, auto-unescaped.')
+    } catch {
+      // 第三步：尝试递归解析（多层序列化的情况）
+      try {
+        let result = input.trim()
+        let depth = 0
+        const maxDepth = 5
+        while (typeof result === 'string' && depth < maxDepth) {
+          result = JSON.parse(result)
+          depth++
+        }
+        if (typeof result === 'object' && result !== null) {
+          parsed = result
+          console.log(`ℹ️  Detected ${depth}-level serialized JSON string, auto-parsed.`)
+        } else {
+          console.error('Input is not valid JSON.')
+          process.exit(1)
+        }
+      } catch {
+        console.error('Input is not valid JSON.')
+        process.exit(1)
+      }
+    }
   }
+
+  // 递归检查解析后的对象中是否有嵌套的 JSON 字符串值，自动展开
+  parsed = deepParseJsonStrings(parsed)
 
   const html = toHtml(parsed)
   const filePath = path.join(os.tmpdir(), `json-viewer-${Date.now()}.html`)
