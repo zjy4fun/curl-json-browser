@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JSON Formatter</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+      background: #0f172a;
+      color: #e2e8f0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      height: 48px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #e2e8f0;
+      white-space: nowrap;
+    }
+    .header .actions {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    /* ===== Layout ===== */
+    .container {
+      display: flex;
+      height: calc(100vh - 48px);
+    }
+    .panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .panel-left {
+      border-right: 1px solid #334155;
+    }
+    .panel-header {
+      height: 40px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 10px;
+      flex-shrink: 0;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .panel-header .label {
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    /* ===== Resizer ===== */
+    .resizer {
+      width: 5px;
+      background: #334155;
+      cursor: col-resize;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .resizer:hover, .resizer.active {
+      background: #58a6ff;
+    }
+
+    /* ===== Left Panel: Input ===== */
+    .input-area {
+      flex: 1;
+      resize: none;
+      border: none;
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 16px;
+      outline: none;
+      tab-size: 2;
+    }
+    .input-area::placeholder {
+      color: #475569;
+    }
+
+    /* ===== Right Panel: Viewer ===== */
+    .toolbar {
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 8px 16px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    button {
+      border: 1px solid #475569;
+      background: #1e293b;
+      color: #e2e8f0;
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    button:hover {
+      background: #334155;
+    }
+    button.primary {
+      background: #1d4ed8;
+      border-color: #2563eb;
+    }
+    button.primary:hover {
+      background: #2563eb;
+    }
+
+    /* ===== Search ===== */
+    .search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }
+    .search-wrap input {
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-family: inherit;
+      width: 180px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-wrap input:focus {
+      border-color: #58a6ff;
+    }
+    .search-wrap input::placeholder {
+      color: #64748b;
+    }
+    .search-count {
+      font-size: 11px;
+      color: #64748b;
+      min-width: 50px;
+    }
+    .search-nav button {
+      padding: 3px 7px;
+      font-size: 11px;
+    }
+
+    /* ===== Toggle ===== */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .toggle-wrap.hidden { display: none; }
+    .toggle {
+      position: relative;
+      width: 36px;
+      height: 20px;
+      cursor: pointer;
+    }
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle .slider {
+      position: absolute;
+      inset: 0;
+      background: #334155;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+    .toggle .slider::before {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      left: 3px;
+      bottom: 3px;
+      background: #e2e8f0;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .toggle input:checked + .slider {
+      background: #58a6ff;
+    }
+    .toggle input:checked + .slider::before {
+      transform: translateX(16px);
+    }
+
+    /* ===== JSON Tree ===== */
+    .viewer {
+      flex: 1;
+      overflow: auto;
+      padding: 16px;
+      line-height: 1.5;
+      font-size: 13px;
+    }
+    .viewer .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #475569;
+      font-size: 14px;
+      gap: 8px;
+    }
+    .viewer .empty-state .icon {
+      font-size: 36px;
+      opacity: 0.5;
+    }
+    .viewer .error-msg {
+      color: #f87171;
+      background: rgba(248,113,113,0.1);
+      border: 1px solid rgba(248,113,113,0.2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+    }
+    details {
+      margin-left: 16px;
+    }
+    summary {
+      cursor: pointer;
+      list-style: none;
+    }
+    summary::-webkit-details-marker {
+      display: none;
+    }
+    summary::before {
+      content: '\25B8';
+      margin-right: 6px;
+      color: #94a3b8;
+    }
+    details[open] > summary::before {
+      content: '\25BE';
+    }
+    ul {
+      list-style: none;
+      margin: 4px 0 0 12px;
+      padding-left: 12px;
+      border-left: 1px dashed #334155;
+    }
+    .key { color: #93c5fd; }
+    .colon { color: #94a3b8; }
+    .string { color: #86efac; }
+    .number { color: #fcd34d; }
+    .boolean { color: #f9a8d4; }
+    .null { color: #cbd5e1; }
+    .symbol { color: #c4b5fd; }
+    .meta { color: #64748b; }
+
+    /* ===== Search highlight ===== */
+    mark.highlight {
+      background: #f0883e;
+      color: #0d1117;
+      border-radius: 2px;
+      padding: 0 1px;
+    }
+    mark.highlight.current {
+      background: #58a6ff;
+      color: #fff;
+      box-shadow: 0 0 0 2px rgba(88,166,255,0.4);
+    }
+
+    /* ===== Status Bar ===== */
+    .status-bar {
+      height: 24px;
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 11px;
+      color: #64748b;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>{ } JSON Formatter</h1>
+  </div>
+
+  <div class="container">
+    <!-- Left Panel: Input -->
+    <div class="panel panel-left" id="panel-left">
+      <div class="panel-header">
+        <span class="label">Input</span>
+        <button id="btn-format" class="primary">Format</button>
+        <button id="btn-sample">Sample</button>
+        <button id="btn-clear">Clear</button>
+      </div>
+      <textarea class="input-area" id="json-input" placeholder="Paste or type JSON here..." spellcheck="false"></textarea>
+    </div>
+
+    <!-- Resizer -->
+    <div class="resizer" id="resizer"></div>
+
+    <!-- Right Panel: Viewer -->
+    <div class="panel panel-right" id="panel-right">
+      <div class="toolbar">
+        <button id="expand-all">Expand all</button>
+        <button id="collapse-all">Collapse all</button>
+        <div class="toggle-wrap hidden" id="toggle-wrap" title="Parse embedded JSON strings inside values">
+          <span>Parse JSON strings</span>
+          <label class="toggle">
+            <input type="checkbox" id="deep-parse-toggle" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="search-wrap">
+          <input type="text" id="search-input" placeholder="Search..." autocomplete="off" />
+          <span class="search-count" id="search-count"></span>
+          <span class="search-nav">
+            <button id="search-prev" title="Previous (Shift+Enter)">&#9650;</button>
+            <button id="search-next" title="Next (Enter)">&#9660;</button>
+          </span>
+        </div>
+      </div>
+      <div class="viewer" id="viewer">
+        <div class="empty-state">
+          <div class="icon">{ }</div>
+          <div>Paste JSON on the left and click <b>Format</b></div>
+          <div style="font-size:12px">or press Ctrl+Enter</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span id="status-info">Ready</span>
+    <span id="status-size" style="margin-left:auto"></span>
+  </div>
+
+  <script>
+    // ===== Utility =====
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+    }
+
+    function valueToHtml(value, key) {
+      const keyHtml = key === undefined
+        ? ''
+        : '<span class="key">' + escapeHtml(String(key)) + '</span><span class="colon">: </span>'
+
+      if (value === null) {
+        return '<div class="line">' + keyHtml + '<span class="null">null</span></div>'
+      }
+
+      const type = typeof value
+
+      if (type === 'string') {
+        return '<div class="line">' + keyHtml + '<span class="string">"' + escapeHtml(value) + '"</span></div>'
+      }
+      if (type === 'number') {
+        return '<div class="line">' + keyHtml + '<span class="number">' + value + '</span></div>'
+      }
+      if (type === 'boolean') {
+        return '<div class="line">' + keyHtml + '<span class="boolean">' + value + '</span></div>'
+      }
+
+      if (Array.isArray(value)) {
+        const children = value
+          .map(function (item, idx) { return '<li>' + valueToHtml(item, idx) + '</li>' })
+          .join('')
+        return '<details open>' +
+          '<summary>' + keyHtml + '<span class="symbol">[ ]</span> <span class="meta">(' + value.length + ' items)</span></summary>' +
+          '<ul>' + children + '</ul>' +
+          '</details>'
+      }
+
+      if (type === 'object') {
+        const entries = Object.entries(value)
+        const children = entries
+          .map(function (e) { return '<li>' + valueToHtml(e[1], e[0]) + '</li>' })
+          .join('')
+        return '<details open>' +
+          '<summary>' + keyHtml + '<span class="symbol">{ }</span> <span class="meta">(' + entries.length + ' keys)</span></summary>' +
+          '<ul>' + children + '</ul>' +
+          '</details>'
+      }
+
+      return '<div class="line">' + keyHtml + '<span>' + escapeHtml(String(value)) + '</span></div>'
+    }
+
+    function deepParseJsonStrings(obj) {
+      if (obj === null || obj === undefined) return obj
+      if (Array.isArray(obj)) return obj.map(deepParseJsonStrings)
+      if (typeof obj === 'object') {
+        var result = {}
+        for (var k in obj) {
+          if (obj.hasOwnProperty(k)) result[k] = deepParseJsonStrings(obj[k])
+        }
+        return result
+      }
+      if (typeof obj === 'string') {
+        var trimmed = obj.trim()
+        if ((trimmed[0] === '{' && trimmed[trimmed.length - 1] === '}') ||
+            (trimmed[0] === '[' && trimmed[trimmed.length - 1] === ']')) {
+          try {
+            return deepParseJsonStrings(JSON.parse(trimmed))
+          } catch (e) {
+            return obj
+          }
+        }
+      }
+      return obj
+    }
+
+    function smartParse(input) {
+      // Try direct parse
+      try {
+        return JSON.parse(input)
+      } catch (e) { /* continue */ }
+
+      // Try handling serialized JSON strings (double-escaped)
+      try {
+        var cleaned = input.trim()
+        if ((cleaned[0] === '"' && cleaned[cleaned.length - 1] === '"') ||
+            (cleaned[0] === "'" && cleaned[cleaned.length - 1] === "'")) {
+          cleaned = cleaned.slice(1, -1)
+        }
+        cleaned = cleaned
+          .replace(/\\"/g, '"')
+          .replace(/\\\\/g, '\\')
+          .replace(/\\n/g, '\n')
+          .replace(/\\t/g, '\t')
+          .replace(/\\r/g, '\r')
+        return JSON.parse(cleaned)
+      } catch (e) { /* continue */ }
+
+      // Try recursive parse (multi-level serialization)
+      try {
+        var result = input.trim()
+        var depth = 0
+        while (typeof result === 'string' && depth < 5) {
+          result = JSON.parse(result)
+          depth++
+        }
+        if (typeof result === 'object' && result !== null) return result
+      } catch (e) { /* continue */ }
+
+      throw new Error('Invalid JSON')
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B'
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+    }
+
+    // ===== Elements =====
+    var jsonInput = document.getElementById('json-input')
+    var viewer = document.getElementById('viewer')
+    var btnFormat = document.getElementById('btn-format')
+    var btnSample = document.getElementById('btn-sample')
+    var btnClear = document.getElementById('btn-clear')
+    var btnExpandAll = document.getElementById('expand-all')
+    var btnCollapseAll = document.getElementById('collapse-all')
+    var searchInput = document.getElementById('search-input')
+    var searchCount = document.getElementById('search-count')
+    var searchPrev = document.getElementById('search-prev')
+    var searchNext = document.getElementById('search-next')
+    var toggleWrap = document.getElementById('toggle-wrap')
+    var deepParseToggle = document.getElementById('deep-parse-toggle')
+    var statusInfo = document.getElementById('status-info')
+    var statusSize = document.getElementById('status-size')
+    var panelLeft = document.getElementById('panel-left')
+    var resizer = document.getElementById('resizer')
+
+    var currentParsed = null
+    var currentDeepParsed = null
+
+    // ===== Core: Format =====
+    function doFormat() {
+      var input = jsonInput.value.trim()
+      if (!input) {
+        viewer.innerHTML = '<div class="empty-state"><div class="icon">{ }</div><div>Paste JSON on the left and click <b>Format</b></div><div style="font-size:12px">or press Ctrl+Enter</div></div>'
+        statusInfo.textContent = 'Ready'
+        statusSize.textContent = ''
+        toggleWrap.classList.add('hidden')
+        clearSearch()
+        return
+      }
+
+      try {
+        currentParsed = smartParse(input)
+        currentDeepParsed = deepParseJsonStrings(currentParsed)
+        var hasDiff = JSON.stringify(currentParsed) !== JSON.stringify(currentDeepParsed)
+
+        if (hasDiff) {
+          toggleWrap.classList.remove('hidden')
+        } else {
+          toggleWrap.classList.add('hidden')
+        }
+
+        renderView()
+
+        // Also auto-format the input
+        jsonInput.value = JSON.stringify(currentParsed, null, 2)
+
+        var keys = 0
+        try { keys = JSON.stringify(currentParsed).length } catch (e) {}
+        statusInfo.textContent = 'Formatted successfully'
+        statusSize.textContent = formatBytes(new Blob([input]).size)
+      } catch (e) {
+        viewer.innerHTML = '<div class="error-msg"><b>Parse Error</b><br>' + escapeHtml(e.message) + '</div>'
+        statusInfo.textContent = 'Parse error'
+        statusSize.textContent = ''
+        toggleWrap.classList.add('hidden')
+      }
+    }
+
+    function renderView() {
+      var showDeep = deepParseToggle.checked
+      var obj = showDeep ? currentDeepParsed : currentParsed
+      if (!obj) return
+      viewer.innerHTML = valueToHtml(obj)
+      clearSearch()
+      if (searchInput.value.trim()) doSearch()
+    }
+
+    // ===== Buttons =====
+    btnFormat.addEventListener('click', doFormat)
+
+    btnSample.addEventListener('click', function () {
+      jsonInput.value = JSON.stringify({
+        name: 'json-open',
+        version: '0.2.1',
+        description: 'Open JSON in browser with interactive tree view',
+        features: ['collapsible tree', 'search & highlight', 'dark theme', 'auto-parse nested JSON'],
+        author: { name: 'zjy4fun', github: 'https://github.com/zjy4fun' },
+        stats: { stars: 42, forks: 7, issues: 3 },
+        tags: ['json', 'viewer', 'cli', 'browser'],
+        nested_json: '{"deeply": {"embedded": "json string"}}',
+        active: true,
+        license: 'MIT'
+      }, null, 2)
+      doFormat()
+    })
+
+    btnClear.addEventListener('click', function () {
+      jsonInput.value = ''
+      viewer.innerHTML = '<div class="empty-state"><div class="icon">{ }</div><div>Paste JSON on the left and click <b>Format</b></div><div style="font-size:12px">or press Ctrl+Enter</div></div>'
+      statusInfo.textContent = 'Ready'
+      statusSize.textContent = ''
+      toggleWrap.classList.add('hidden')
+      currentParsed = null
+      currentDeepParsed = null
+      clearSearch()
+    })
+
+    // Ctrl+Enter to format
+    jsonInput.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault()
+        doFormat()
+      }
+      // Tab support
+      if (e.key === 'Tab') {
+        e.preventDefault()
+        var start = this.selectionStart
+        var end = this.selectionEnd
+        this.value = this.value.substring(0, start) + '  ' + this.value.substring(end)
+        this.selectionStart = this.selectionEnd = start + 2
+      }
+    })
+
+    // ===== Expand / Collapse =====
+    function getDetails() {
+      return Array.from(viewer.querySelectorAll('details'))
+    }
+    btnExpandAll.addEventListener('click', function () {
+      getDetails().forEach(function (d) { d.open = true })
+    })
+    btnCollapseAll.addEventListener('click', function () {
+      getDetails().forEach(function (d) { d.open = false })
+    })
+
+    // ===== Deep Parse Toggle =====
+    deepParseToggle.addEventListener('change', function () {
+      renderView()
+    })
+
+    // ===== Search =====
+    var highlights = []
+    var currentIdx = -1
+
+    function clearSearch() {
+      viewer.querySelectorAll('mark.highlight').forEach(function (mark) {
+        var parent = mark.parentNode
+        parent.replaceChild(document.createTextNode(mark.textContent), mark)
+        parent.normalize()
+      })
+      highlights = []
+      currentIdx = -1
+      searchCount.textContent = ''
+    }
+
+    function doSearch() {
+      clearSearch()
+      var query = searchInput.value.trim()
+      if (!query) return
+
+      var regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi')
+
+      var walker = document.createTreeWalker(viewer, NodeFilter.SHOW_TEXT, null)
+      var textNodes = []
+      while (walker.nextNode()) textNodes.push(walker.currentNode)
+
+      textNodes.forEach(function (node) {
+        var text = node.textContent
+        if (!regex.test(text)) return
+        regex.lastIndex = 0
+
+        var frag = document.createDocumentFragment()
+        var lastIdx = 0
+        var match
+        while ((match = regex.exec(text)) !== null) {
+          if (match.index > lastIdx) {
+            frag.appendChild(document.createTextNode(text.slice(lastIdx, match.index)))
+          }
+          var mark = document.createElement('mark')
+          mark.className = 'highlight'
+          mark.textContent = match[0]
+          frag.appendChild(mark)
+          lastIdx = regex.lastIndex
+        }
+        if (lastIdx < text.length) {
+          frag.appendChild(document.createTextNode(text.slice(lastIdx)))
+        }
+        node.parentNode.replaceChild(frag, node)
+      })
+
+      highlights = Array.from(viewer.querySelectorAll('mark.highlight'))
+      if (highlights.length > 0) {
+        highlights.forEach(function (h) {
+          var el = h.closest('details')
+          while (el) {
+            el.open = true
+            el = el.parentElement ? el.parentElement.closest('details') : null
+          }
+        })
+        currentIdx = 0
+        requestAnimationFrame(scrollToCurrent)
+      }
+      updateCount()
+    }
+
+    function updateCount() {
+      if (highlights.length === 0 && searchInput.value.trim()) {
+        searchCount.textContent = 'No match'
+      } else if (highlights.length > 0) {
+        searchCount.textContent = (currentIdx + 1) + ' / ' + highlights.length
+      } else {
+        searchCount.textContent = ''
+      }
+    }
+
+    function scrollToCurrent() {
+      highlights.forEach(function (h, i) {
+        h.classList.toggle('current', i === currentIdx)
+      })
+      if (highlights[currentIdx]) {
+        var el = highlights[currentIdx].closest('details')
+        while (el) {
+          el.open = true
+          el = el.parentElement ? el.parentElement.closest('details') : null
+        }
+        highlights[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+      updateCount()
+    }
+
+    function goNext() {
+      if (!highlights.length) return
+      currentIdx = (currentIdx + 1) % highlights.length
+      scrollToCurrent()
+    }
+    function goPrev() {
+      if (!highlights.length) return
+      currentIdx = (currentIdx - 1 + highlights.length) % highlights.length
+      scrollToCurrent()
+    }
+
+    var debounceTimer
+    searchInput.addEventListener('input', function () {
+      clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(doSearch, 200)
+    })
+
+    searchInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        e.shiftKey ? goPrev() : goNext()
+      }
+      if (e.key === 'Escape') {
+        searchInput.value = ''
+        clearSearch()
+        searchInput.blur()
+      }
+    })
+
+    searchNext.addEventListener('click', goNext)
+    searchPrev.addEventListener('click', goPrev)
+
+    // Ctrl+F / Cmd+F -> focus search
+    document.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault()
+        searchInput.focus()
+        searchInput.select()
+      }
+    })
+
+    // ===== Resizer =====
+    ;(function () {
+      var startX, startWidth
+      resizer.addEventListener('mousedown', function (e) {
+        startX = e.clientX
+        startWidth = panelLeft.getBoundingClientRect().width
+        resizer.classList.add('active')
+        document.addEventListener('mousemove', onMouseMove)
+        document.addEventListener('mouseup', onMouseUp)
+        e.preventDefault()
+      })
+      function onMouseMove(e) {
+        var newWidth = startWidth + (e.clientX - startX)
+        var minW = 200
+        var maxW = window.innerWidth - 300
+        newWidth = Math.max(minW, Math.min(maxW, newWidth))
+        panelLeft.style.flex = 'none'
+        panelLeft.style.width = newWidth + 'px'
+      }
+      function onMouseUp() {
+        resizer.classList.remove('active')
+        document.removeEventListener('mousemove', onMouseMove)
+        document.removeEventListener('mouseup', onMouseUp)
+      }
+    })()
+
+    // ===== Drag & Drop =====
+    jsonInput.addEventListener('dragover', function (e) {
+      e.preventDefault()
+      e.dataTransfer.dropEffect = 'copy'
+    })
+    jsonInput.addEventListener('drop', function (e) {
+      e.preventDefault()
+      var file = e.dataTransfer.files[0]
+      if (file) {
+        var reader = new FileReader()
+        reader.onload = function (ev) {
+          jsonInput.value = ev.target.result
+          doFormat()
+        }
+        reader.readAsText(file)
+      }
+    })
+
+    // ===== Paste auto-format =====
+    jsonInput.addEventListener('paste', function () {
+      setTimeout(function () {
+        if (jsonInput.value.trim()) doFormat()
+      }, 0)
+    })
+  </script>
+</body>
+</html>
