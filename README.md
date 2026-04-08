@@ -1,6 +1,6 @@
-# json-open
+# JSON Formatter (`json-open`)
 
-A fast, zero-dependency JSON viewer — CLI + Web.
+A fast, zero-dependency JSON formatter & viewer — CLI + Web.
 
 > Pipe JSON from terminal or paste it in the browser. Inspect instantly.
 

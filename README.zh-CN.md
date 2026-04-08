@@ -1,6 +1,6 @@
-# json-open
+# JSON Formatter (`json-open`)
 
-快速、零依赖的 JSON 查看器 — CLI + Web 双模式。
+快速、零依赖的 JSON 格式化 & 查看器 — CLI + Web 双模式。
 
 > 终端里管道输入，或浏览器里粘贴，立刻查看结构。
 
