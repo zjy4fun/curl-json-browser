@@ -478,6 +478,7 @@
       <div class="panel-header">
         <span class="label">Input</span>
         <button id="btn-format" class="primary">Format</button>
+        <button id="btn-copy">Copy</button>
         <button id="btn-sample">Sample</button>
         <button id="btn-clear">Clear</button>
       </div>
@@ -661,6 +662,7 @@
     var jsonInput = document.getElementById('json-input')
     var viewer = document.getElementById('viewer')
     var btnFormat = document.getElementById('btn-format')
+    var btnCopy = document.getElementById('btn-copy')
     var btnSample = document.getElementById('btn-sample')
     var btnClear = document.getElementById('btn-clear')
     var btnExpandAll = document.getElementById('expand-all')
@@ -730,6 +732,16 @@
 
     // ===== Buttons =====
     btnFormat.addEventListener('click', doFormat)
+
+    btnCopy.addEventListener('click', function () {
+      var text = jsonInput.value.trim()
+      if (!text) return
+      navigator.clipboard.writeText(text).then(function () {
+        var orig = btnCopy.textContent
+        btnCopy.textContent = 'Copied!'
+        setTimeout(function () { btnCopy.textContent = orig }, 1500)
+      })
+    })
 
     btnSample.addEventListener('click', function () {
       jsonInput.value = JSON.stringify({
