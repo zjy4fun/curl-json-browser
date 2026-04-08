@@ -1,7 +1,7 @@
 {
   "name": "@zjy4fun/json-open",
-  "version": "0.2.1",
-  "description": "Open JSON (stdin or inline text) in a browser with collapsible tree view",
+  "version": "0.3.0",
+  "description": "JSON Formatter — A fast, zero-dependency JSON formatter & viewer (CLI + Web)",
   "type": "module",
   "bin": {
     "json": "bin/json.js"
@@ -12,10 +12,11 @@
   },
   "keywords": [
     "json",
-    "curl",
+    "formatter",
+    "viewer",
     "cli",
     "browser",
-    "formatter"
+    "curl"
   ],
   "author": "zjy4fun",
   "license": "MIT",
