@@ -49,6 +49,10 @@
       --github-link-hover: #e2e8f0;
       --theme-btn-color: #94a3b8;
       --theme-btn-hover: #e2e8f0;
+      --parsed-bg: rgba(251,191,36,0.06);
+      --parsed-border: #f59e0b;
+      --parsed-badge: #f59e0b;
+      --parsed-badge-bg: rgba(245,158,11,0.15);
     }
     :root.light {
       color-scheme: light;
@@ -93,6 +97,10 @@
       --github-link-hover: #1e293b;
       --theme-btn-color: #64748b;
       --theme-btn-hover: #1e293b;
+      --parsed-bg: rgba(245,158,11,0.07);
+      --parsed-border: #d97706;
+      --parsed-badge: #92400e;
+      --parsed-badge-bg: rgba(217,119,6,0.12);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -388,6 +396,25 @@
     .symbol { color: var(--symbol); }
     .meta { color: var(--meta); }
 
+    /* ===== Parsed JSON string highlight ===== */
+    .parsed-json {
+      background: var(--parsed-bg);
+      border-left: 2px solid var(--parsed-border);
+      border-radius: 4px;
+      padding: 2px 0 2px 8px;
+      margin: 2px 0;
+    }
+    .parsed-json > summary::after {
+      content: 'parsed';
+      font-size: 10px;
+      color: var(--parsed-badge);
+      background: var(--parsed-badge-bg);
+      border-radius: 3px;
+      padding: 1px 5px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
     /* ===== Search highlight ===== */
     mark.highlight {
       background: var(--highlight-bg);
@@ -528,21 +555,23 @@
       }
 
       if (Array.isArray(value)) {
+        var isParsedArr = !!value[PARSED_FROM_STRING]
         const children = value
           .map(function (item, idx) { return '<li>' + valueToHtml(item, idx) + '</li>' })
           .join('')
-        return '<details open>' +
+        return '<details open class="' + (isParsedArr ? 'parsed-json' : '') + '">' +
           '<summary>' + keyHtml + '<span class="symbol">[ ]</span> <span class="meta">(' + value.length + ' items)</span></summary>' +
           '<ul>' + children + '</ul>' +
           '</details>'
       }
 
       if (type === 'object') {
+        var isParsedObj = !!value[PARSED_FROM_STRING]
         const entries = Object.entries(value)
         const children = entries
           .map(function (e) { return '<li>' + valueToHtml(e[1], e[0]) + '</li>' })
           .join('')
-        return '<details open>' +
+        return '<details open class="' + (isParsedObj ? 'parsed-json' : '') + '">' +
           '<summary>' + keyHtml + '<span class="symbol">{ }</span> <span class="meta">(' + entries.length + ' keys)</span></summary>' +
           '<ul>' + children + '</ul>' +
           '</details>'
@@ -551,14 +580,19 @@
       return '<div class="line">' + keyHtml + '<span>' + escapeHtml(String(value)) + '</span></div>'
     }
 
+    // Sentinel to mark values that were parsed from JSON strings
+    var PARSED_FROM_STRING = Symbol('parsed-from-string')
+
     function deepParseJsonStrings(obj) {
       if (obj === null || obj === undefined) return obj
       if (Array.isArray(obj)) return obj.map(deepParseJsonStrings)
       if (typeof obj === 'object') {
+        // Don't re-process already-marked objects
         var result = {}
         for (var k in obj) {
           if (obj.hasOwnProperty(k)) result[k] = deepParseJsonStrings(obj[k])
         }
+        if (obj[PARSED_FROM_STRING]) result[PARSED_FROM_STRING] = true
         return result
       }
       if (typeof obj === 'string') {
@@ -566,7 +600,12 @@
         if ((trimmed[0] === '{' && trimmed[trimmed.length - 1] === '}') ||
             (trimmed[0] === '[' && trimmed[trimmed.length - 1] === ']')) {
           try {
-            return deepParseJsonStrings(JSON.parse(trimmed))
+            var parsed = deepParseJsonStrings(JSON.parse(trimmed))
+            // Mark the parsed result so we can highlight it
+            if (typeof parsed === 'object' && parsed !== null) {
+              parsed[PARSED_FROM_STRING] = true
+            }
+            return parsed
           } catch (e) {
             return obj
           }

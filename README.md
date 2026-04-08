@@ -1,65 +1,47 @@
 # json-open
 
-Open JSON in your browser as a collapsible tree view.
+A fast, zero-dependency JSON viewer — CLI + Web.
 
-> A tiny CLI for quickly inspecting JSON from APIs, logs, or inline text.
+> Pipe JSON from terminal or paste it in the browser. Inspect instantly.
 
-![json-open demo](./demo.gif)
+![demo](./demo.gif)
 
----
-
-## Why json-open?
-
-Reading JSON in terminal is often painful:
-
-- Long output is hard to scan
-- Deep nesting is hard to understand quickly
-- Full-featured tools can feel heavy for quick checks
-
-`json-open` keeps it simple: **pipe JSON in, inspect it visually in seconds**.
+**🌐 [Try it online →](https://zjy4fun.github.io/json-open/)**
 
 ---
 
 ## Features
 
-- ✅ Read from stdin (pipe)
-- ✅ Read inline JSON text
-- ✅ Open browser automatically (macOS / Linux / Windows)
-- ✅ Collapsible tree view
-- ✅ Expand all / Collapse all
-- ✅ Local temp file rendering (no remote upload)
-- ✅ **Auto-parse serialized JSON strings** (escaped/double-encoded)
-- ✅ **Deep nested JSON string expansion** (auto-unwrap JSON strings inside objects)
+### CLI
+
+- Pipe from stdin: `curl ... | json`
+- Inline JSON: `json '{"a":1}'`
+- Auto-opens browser with interactive tree view
+- Auto-parse serialized / double-encoded JSON strings
+- Cross-platform (macOS / Linux / Windows)
+
+### Web
+
+- Paste or drag-and-drop JSON
+- Collapsible tree with expand all / collapse all
+- Real-time search with highlighting and keyboard navigation
+- **Parse JSON strings toggle** — auto-expand embedded JSON with visual markers
+- **Light / Dark theme** with localStorage persistence
+- Resizable split panels
+- No server, no upload — everything runs locally
 
 ---
 
-## Installation
-
-### npm (recommended)
+## Install (CLI)
 
 ```bash
 npm i -g @zjy4fun/json-open
 ```
 
-After install, use the global command:
-
-```bash
-json --version
-```
-
-### Run once with npx (no global install)
+Or run once without installing:
 
 ```bash
 npx @zjy4fun/json-open '{"hello":"world"}'
-```
-
-### Local development
-
-```bash
-git clone https://github.com/zjy4fun/json-open.git
-cd json-open
-npm install
-npm link
 ```
 
 ---
@@ -67,98 +49,68 @@ npm link
 ## Quick Start
 
 ```bash
-# 1) API response
+# API response
 curl https://jsonplaceholder.typicode.com/todos/1 | json
 
-# 2) Inline JSON
-json '{"hello":"world","list":[1,2,3]}'
+# Inline JSON
+json '{"name":"test","list":[1,2,3]}'
 
-# 3) JSON file content
-cat response.json | json
+# File
+cat data.json | json
 ```
 
-The command opens your default browser and shows a structured JSON tree.
+---
+
+## Serialized JSON Strings
+
+A common pain point: JSON values that are themselves stringified JSON (from logs, databases, APIs).
+
+```bash
+# Double-encoded
+json '"{\"name\":\"test\"}"'
+
+# Nested JSON string fields
+json '{"data":"{\"users\":[{\"id\":1}]}"}'
+
+# Multi-level
+json '"\"[1,2,3]\""'
+```
+
+`json-open` detects and unwraps these automatically. In the web viewer, toggle **Parse JSON strings** to expand them inline — parsed blocks are highlighted with a distinct background and border so you can tell what was originally a string.
 
 ---
 
 ## CLI Usage
 
-```bash
-json [inline-json]
+```
+json [json-string]
+json -h | --help
+json -v | --version
 ```
 
-Input sources:
-
-- `stdin` (pipe)
-- Inline JSON argument
-
-Options:
-
-- `-h, --help` Show help
-- `-v, --version` Show version
-
-Examples:
-
-```bash
-json --help
-json --version
-json '{"ok":true}'
-```
-
-If no input is provided, usage help is printed.
+Input: stdin (pipe) or inline argument. No input shows help.
 
 ---
 
-## Serialized JSON String Support
+## Web Usage
 
-`json-open` now automatically handles serialized/escaped JSON strings — a common pain point when working with logs, databases, and APIs.
+Open **[zjy4fun.github.io/json-open](https://zjy4fun.github.io/json-open/)** or `index.html` locally.
 
-```bash
-# Double-encoded JSON string (e.g. from database or API response body)
-json '"{\"name\":\"test\",\"age\":25}"'
-# → auto-detects and parses as { "name": "test", "age": 25 }
-
-# Nested JSON strings inside objects
-json '{"status":"ok","data":"{\"users\":[{\"id\":1}]}"}'
-# → auto-expands "data" field into a real JSON tree
-
-# Multi-level serialization
-json '"\"[1,2,3]\""'
-# → recursively unwraps to [1, 2, 3]
-```
-
-This works for:
-- Escaped JSON from `JSON.stringify()` output
-- Log files with embedded JSON payloads
-- API responses where a field contains a JSON string
-- Database columns storing serialized JSON
-
----
-
-## Common Use Cases
-
-- API debugging (inspect response shape quickly)
-- Backend/frontend contract checks
-- Ad-hoc JSON visualization from logs
-- Payload discussion/demo with teammates
-- **Inspecting serialized JSON from databases or message queues**
+- Paste JSON in the left panel, click **Format** (or `Ctrl+Enter`)
+- Use **Expand all / Collapse all** in the toolbar
+- Search with `Ctrl+F` — navigate matches with `Enter` / `Shift+Enter`
+- Toggle **Parse JSON strings** to expand embedded JSON (highlighted with amber markers)
+- Switch theme with the 🌙/☀️ button in the header
 
 ---
 
 ## Contributing
 
-Issues and PRs are welcome.
-
-### Good contribution ideas
-
-- Better JSON parse error location hints
-- Theme switch (light/dark)
-- Direct file path support (e.g. `json ./data.json`)
-- Search / highlight / copy JSON path
-
-### Local dev
+Issues and PRs welcome.
 
 ```bash
+git clone https://github.com/zjy4fun/json-open.git
+cd json-open
 npm install
 npm test
 ```

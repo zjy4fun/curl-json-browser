@@ -1,164 +1,119 @@
 # json-open
 
-把 JSON 直接在浏览器里以可折叠树形结构查看（支持 stdin 和行内 JSON 字符串）。
+快速、零依赖的 JSON 查看器 — CLI + Web 双模式。
 
-> 一个给命令行用户准备的「JSON 临时观察器」：输入 JSON，立刻打开浏览器查看结构。
+> 终端里管道输入，或浏览器里粘贴，立刻查看结构。
 
-## 演示
+![演示](./demo.gif)
 
-![json-open 演示](./demo.gif)
-
----
-
-## 为什么做这个
-
-在终端里看 JSON 常见痛点：
-
-- 内容太长，不好定位
-- 嵌套太深，不直观
-- 临时调试不想上重型工具
-
-`json-open` 的目标是：**让“看 JSON”这一步更快更顺手**。
+**🌐 [在线体验 →](https://zjy4fun.github.io/json-open/)**
 
 ---
 
-## 功能特性
+## 功能
 
-- ✅ 支持管道输入：`curl ... | json`
-- ✅ 支持行内 JSON：`json '{"a":1}'`
-- ✅ 浏览器树形展示（可折叠/展开）
-- ✅ 一键全展开 / 全收起
-- ✅ 本地临时文件渲染，不上传数据
-- ✅ 跨平台打开浏览器（macOS / Linux / Windows）
+### CLI
+
+- 管道输入：`curl ... | json`
+- 行内 JSON：`json '{"a":1}'`
+- 自动打开浏览器展示交互式树形视图
+- 自动解析序列化 / 双重转义的 JSON 字符串
+- 跨平台（macOS / Linux / Windows）
+
+### Web
+
+- 粘贴或拖拽 JSON 文件
+- 可折叠树形结构，一键全展开 / 全收起
+- 实时搜索 + 高亮 + 键盘导航
+- **解析 JSON 字符串开关** — 自动展开嵌套 JSON，展开部分有视觉标记
+- **亮色 / 暗色主题切换**，自动记住偏好
+- 可拖拽调整左右面板大小
+- 纯本地运行，不上传任何数据
 
 ---
 
-## 安装
-
-### 方式一：GitHub Packages（当前主分发）
-
-先配置 npm 使用 GitHub Packages：
-
-```bash
-echo "@zjy4fun:registry=https://npm.pkg.github.com" >> ~/.npmrc
-echo "//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN" >> ~/.npmrc
-```
-
-然后安装：
+## 安装（CLI）
 
 ```bash
 npm i -g @zjy4fun/json-open
 ```
 
-### 方式二：本地开发安装
+免安装直接用：
 
 ```bash
-git clone https://github.com/zjy4fun/json-open.git
-cd json-open
-npm install
-npm link
+npx @zjy4fun/json-open '{"hello":"world"}'
 ```
-
-安装后可全局使用 `json` 命令。
 
 ---
 
 ## 快速开始
 
 ```bash
-# 1) API 返回
+# API 返回
 curl https://jsonplaceholder.typicode.com/todos/1 | json
 
-# 2) 行内 JSON
-json '{"hello":"world","list":[1,2,3]}'
+# 行内 JSON
+json '{"name":"test","list":[1,2,3]}'
 
-# 3) 文件内容
-cat response.json | json
+# 文件
+cat data.json | json
 ```
 
-执行后会自动打开浏览器，展示 JSON 树形视图。
-
 ---
 
-## 常见应用场景
+## 序列化 JSON 字符串
 
-1. **API 调试**  
-   快速查看接口返回结构，尤其是深层嵌套数据。
-
-2. **前后端联调**  
-   接口变更后快速确认字段缺失或类型异常。
-
-3. **临时数据检查**  
-   对日志、队列、快照中的 JSON 做可视化排查。
-
-4. **沟通与演示**  
-   与同事讨论 payload 时更直观。
-
----
-
-## 命令行为
+常见痛点：JSON 值本身又是一个字符串化的 JSON（来自日志、数据库、API 响应）。
 
 ```bash
-json
+# 双重编码
+json '"{\"name\":\"test\"}"'
+
+# 嵌套 JSON 字符串字段
+json '{"data":"{\"users\":[{\"id\":1}]}"}'
+
+# 多层序列化
+json '"\"[1,2,3]\""'
 ```
 
-输入来源：
-
-- stdin（管道）
-- 命令行参数中的 JSON 字符串
-
-参数选项：
-
-- `-h, --help` 显示帮助
-- `-v, --version` 显示版本
-
-示例：
-
-```bash
-json --help
-json --version
-json '{"ok":true}'
-```
-
-如果没有输入，会输出 usage 提示。
+`json-open` 自动检测并解包。在 Web 界面中开启 **Parse JSON strings** 开关，展开的嵌套块会用琥珀色背景和左边框标记，一眼区分哪些是从字符串解析出来的。
 
 ---
 
-## 发布与分发
+## CLI 用法
 
-仓库已包含 GitHub Actions：
+```
+json [json-string]
+json -h | --help
+json -v | --version
+```
 
-- `CI`：基础校验流程
-- `Publish to GitHub Packages`：发布到 GPR
-- `Publish to npm (Trusted Publishing)`：预留 npm OIDC 发布流程
+输入来源：stdin（管道）或命令行参数。无输入时显示帮助。
 
-当前主分发方式：**GitHub Packages**。
+---
+
+## Web 用法
+
+打开 **[zjy4fun.github.io/json-open](https://zjy4fun.github.io/json-open/)** 或本地 `index.html`。
+
+- 左侧面板粘贴 JSON，点击 **Format**（或 `Ctrl+Enter`）
+- 工具栏 **Expand all / Collapse all** 控制展开
+- `Ctrl+F` 搜索 — `Enter` / `Shift+Enter` 跳转匹配项
+- 开启 **Parse JSON strings** 展开嵌套 JSON（琥珀色标记）
+- 右上角 🌙/☀️ 切换主题
 
 ---
 
 ## 参与贡献
 
-欢迎提 Issue / PR。
-
-### 建议贡献方向
-
-- 更好的错误提示（如 JSON 语法错误定位）
-- 主题切换（亮色/暗色）
-- 支持直接读取文件路径（如 `json ./data.json`）
-- 更丰富交互（搜索、高亮、复制 JSON Path）
-
-### 本地开发
+欢迎 Issue / PR。
 
 ```bash
+git clone https://github.com/zjy4fun/json-open.git
+cd json-open
 npm install
 npm test
 ```
-
-提交前建议：
-
-- 确保代码可运行
-- 确保 README 示例可复现
-- 改动保持聚焦、清晰
 
 ---
 
