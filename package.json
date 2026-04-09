@@ -1,6 +1,6 @@
 {
   "name": "@zjy4fun/json-open",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "JSON Formatter — A fast, zero-dependency JSON formatter & viewer (CLI + Web)",
   "type": "module",
   "bin": {
