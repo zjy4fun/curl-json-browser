@@ -479,7 +479,6 @@
         <span class="label">Input</span>
         <button id="btn-format" class="primary">✨ Format</button>
         <button id="btn-copy">📋 Copy</button>
-        <button id="btn-clear">Clear</button>
         <button id="btn-share">🔗 Share</button>
       </div>
       <textarea class="input-area" id="json-input" placeholder="Paste or type JSON here..." spellcheck="false"></textarea>
@@ -663,7 +662,6 @@
     var viewer = document.getElementById('viewer')
     var btnFormat = document.getElementById('btn-format')
     var btnCopy = document.getElementById('btn-copy')
-    var btnClear = document.getElementById('btn-clear')
     var btnShare = document.getElementById('btn-share')
     var btnExpandAll = document.getElementById('expand-all')
     var btnCollapseAll = document.getElementById('collapse-all')
@@ -741,17 +739,6 @@
         btnCopy.textContent = '✅ Copied!'
         setTimeout(function () { btnCopy.textContent = orig }, 1500)
       })
-    })
-
-    btnClear.addEventListener('click', function () {
-      jsonInput.value = ''
-      viewer.innerHTML = '<div class="empty-state"><div class="icon">{ }</div><div>Paste JSON on the left and click <b>Format</b></div><div style="font-size:12px">or press Ctrl+Enter</div></div>'
-      statusInfo.textContent = 'Ready'
-      statusSize.textContent = ''
-      toggleWrap.classList.add('hidden')
-      currentParsed = null
-      currentDeepParsed = null
-      clearSearch()
     })
 
     // ===== Share =====
