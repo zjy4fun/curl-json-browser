@@ -477,11 +477,10 @@
     <div class="panel panel-left" id="panel-left">
       <div class="panel-header">
         <span class="label">Input</span>
-        <button id="btn-format" class="primary">Format</button>
-        <button id="btn-copy">Copy</button>
-        <button id="btn-sample">Sample</button>
+        <button id="btn-format" class="primary">✨ Format</button>
+        <button id="btn-copy">📋 Copy</button>
         <button id="btn-clear">Clear</button>
-        <button id="btn-share">Share</button>
+        <button id="btn-share">🔗 Share</button>
       </div>
       <textarea class="input-area" id="json-input" placeholder="Paste or type JSON here..." spellcheck="false"></textarea>
     </div>
@@ -664,7 +663,6 @@
     var viewer = document.getElementById('viewer')
     var btnFormat = document.getElementById('btn-format')
     var btnCopy = document.getElementById('btn-copy')
-    var btnSample = document.getElementById('btn-sample')
     var btnClear = document.getElementById('btn-clear')
     var btnShare = document.getElementById('btn-share')
     var btnExpandAll = document.getElementById('expand-all')
@@ -740,25 +738,9 @@
       if (!text) return
       navigator.clipboard.writeText(text).then(function () {
         var orig = btnCopy.textContent
-        btnCopy.textContent = 'Copied!'
+        btnCopy.textContent = '✅ Copied!'
         setTimeout(function () { btnCopy.textContent = orig }, 1500)
       })
-    })
-
-    btnSample.addEventListener('click', function () {
-      jsonInput.value = JSON.stringify({
-        name: 'json-open',
-        version: '0.2.1',
-        description: 'Open JSON in browser with interactive tree view',
-        features: ['collapsible tree', 'search & highlight', 'dark theme', 'auto-parse nested JSON'],
-        author: { name: 'zjy4fun', github: 'https://github.com/zjy4fun' },
-        stats: { stars: 42, forks: 7, issues: 3 },
-        tags: ['json', 'viewer', 'cli', 'browser'],
-        nested_json: '{"deeply": {"embedded": "json string"}}',
-        active: true,
-        license: 'MIT'
-      }, null, 2)
-      doFormat()
     })
 
     btnClear.addEventListener('click', function () {
@@ -793,7 +775,7 @@
       var url = location.origin + location.pathname + '#json=' + encoded
       navigator.clipboard.writeText(url).then(function () {
         var orig = btnShare.textContent
-        btnShare.textContent = 'Link copied!'
+        btnShare.textContent = '✅ Link copied!'
         statusInfo.textContent = 'Share link copied (' + formatBytes(url.length) + ')'
         setTimeout(function () { btnShare.textContent = orig }, 2000)
       })
