@@ -477,7 +477,6 @@
     <div class="panel panel-left" id="panel-left">
       <div class="panel-header">
         <span class="label">Input</span>
-        <button id="btn-format" class="primary">✨ Format</button>
         <button id="btn-copy">📋 Copy</button>
         <button id="btn-share">🔗 Share</button>
       </div>
@@ -511,8 +510,8 @@
       <div class="viewer" id="viewer">
         <div class="empty-state">
           <div class="icon">{ }</div>
-          <div>Paste JSON on the left and click <b>Format</b></div>
-          <div style="font-size:12px">or press Ctrl+Enter</div>
+          <div>Paste or type JSON on the left</div>
+          <div style="font-size:12px">It will format automatically</div>
         </div>
       </div>
     </div>
@@ -660,7 +659,6 @@
     // ===== Elements =====
     var jsonInput = document.getElementById('json-input')
     var viewer = document.getElementById('viewer')
-    var btnFormat = document.getElementById('btn-format')
     var btnCopy = document.getElementById('btn-copy')
     var btnShare = document.getElementById('btn-share')
     var btnExpandAll = document.getElementById('expand-all')
@@ -683,7 +681,7 @@
     function doFormat() {
       var input = jsonInput.value.trim()
       if (!input) {
-        viewer.innerHTML = '<div class="empty-state"><div class="icon">{ }</div><div>Paste JSON on the left and click <b>Format</b></div><div style="font-size:12px">or press Ctrl+Enter</div></div>'
+        viewer.innerHTML = '<div class="empty-state"><div class="icon">{ }</div><div>Paste or type JSON on the left</div><div style="font-size:12px">It will format automatically</div></div>'
         statusInfo.textContent = 'Ready'
         statusSize.textContent = ''
         toggleWrap.classList.add('hidden')
@@ -729,8 +727,6 @@
     }
 
     // ===== Buttons =====
-    btnFormat.addEventListener('click', doFormat)
-
     btnCopy.addEventListener('click', function () {
       var text = jsonInput.value.trim()
       if (!text) return
@@ -768,12 +764,8 @@
       })
     })
 
-    // Ctrl+Enter to format
+    // Input behavior
     jsonInput.addEventListener('keydown', function (e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault()
-        doFormat()
-      }
       // Tab support
       if (e.key === 'Tab') {
         e.preventDefault()
@@ -975,11 +967,13 @@
       }
     })
 
-    // ===== Paste auto-format =====
-    jsonInput.addEventListener('paste', function () {
-      setTimeout(function () {
-        if (jsonInput.value.trim()) doFormat()
-      }, 0)
+    // ===== Auto format on input =====
+    var inputDebounceTimer
+    jsonInput.addEventListener('input', function () {
+      clearTimeout(inputDebounceTimer)
+      inputDebounceTimer = setTimeout(function () {
+        doFormat()
+      }, 200)
     })
 
     // ===== Load from URL hash =====
