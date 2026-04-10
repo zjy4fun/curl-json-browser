@@ -5,111 +5,152 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JSON Formatter</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
-    /* ===== Theme Variables ===== */
+    /* ===== Theme Variables (OKLCH) ===== */
     :root {
       color-scheme: dark;
-      --bg-body: #0f172a;
-      --bg-header: #1e293b;
-      --bg-input: #0f172a;
-      --bg-button: #1e293b;
-      --bg-button-hover: #334155;
-      --bg-primary: #1d4ed8;
-      --bg-primary-hover: #2563eb;
-      --border: #334155;
-      --border-button: #475569;
-      --border-search-focus: #58a6ff;
-      --text: #e2e8f0;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
-      --text-label: #cbd5e1;
-      --text-placeholder: #475569;
-      --resizer: #334155;
-      --resizer-active: #58a6ff;
-      --tree-line: #334155;
-      --arrow: #94a3b8;
-      --key: #93c5fd;
-      --colon: #94a3b8;
-      --string: #86efac;
-      --number: #fcd34d;
-      --boolean: #f9a8d4;
-      --null: #cbd5e1;
-      --symbol: #c4b5fd;
-      --meta: #64748b;
-      --highlight-bg: #f0883e;
-      --highlight-text: #0d1117;
-      --highlight-current-bg: #58a6ff;
-      --highlight-current-text: #fff;
-      --error-text: #f87171;
-      --error-bg: rgba(248,113,113,0.1);
-      --error-border: rgba(248,113,113,0.2);
-      --toggle-bg: #334155;
-      --toggle-active: #58a6ff;
-      --toggle-knob: #e2e8f0;
-      --github-link: #94a3b8;
-      --github-link-hover: #e2e8f0;
-      --theme-btn-color: #94a3b8;
-      --theme-btn-hover: #e2e8f0;
-      --parsed-bg: rgba(251,191,36,0.06);
-      --parsed-border: #f59e0b;
-      --parsed-badge: #f59e0b;
-      --parsed-badge-bg: rgba(245,158,11,0.15);
+      --font-ui: 'Figtree', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+      /* Surfaces — teal-tinted neutrals, hue 195 */
+      --bg-body: oklch(0.16 0.012 195);
+      --bg-header: oklch(0.21 0.012 195);
+      --bg-input: oklch(0.16 0.012 195);
+      --bg-button: oklch(0.24 0.012 195);
+      --bg-button-hover: oklch(0.30 0.012 195);
+      --bg-primary: oklch(0.55 0.14 195);
+      --bg-primary-hover: oklch(0.60 0.14 195);
+
+      /* Borders */
+      --border: oklch(0.30 0.010 195);
+      --border-button: oklch(0.38 0.010 195);
+      --border-search-focus: oklch(0.65 0.14 195);
+
+      /* Text */
+      --text: oklch(0.92 0.008 195);
+      --text-secondary: oklch(0.70 0.010 195);
+      --text-muted: oklch(0.55 0.010 195);
+      --text-label: oklch(0.82 0.008 195);
+      --text-placeholder: oklch(0.40 0.010 195);
+
+      /* Resizer */
+      --resizer: oklch(0.30 0.010 195);
+      --resizer-active: oklch(0.65 0.14 195);
+
+      /* Tree */
+      --tree-line: oklch(0.30 0.010 195);
+      --arrow: oklch(0.60 0.010 195);
+
+      /* Syntax — cohesive, slightly desaturated */
+      --key: oklch(0.78 0.09 195);
+      --colon: oklch(0.60 0.010 195);
+      --string: oklch(0.76 0.11 155);
+      --number: oklch(0.78 0.10 80);
+      --boolean: oklch(0.74 0.09 340);
+      --null: oklch(0.62 0.02 195);
+      --symbol: oklch(0.74 0.09 285);
+      --meta: oklch(0.55 0.010 195);
+
+      /* Search highlights */
+      --highlight-bg: oklch(0.75 0.14 70);
+      --highlight-text: oklch(0.18 0.01 195);
+      --highlight-current-bg: oklch(0.60 0.14 195);
+      --highlight-current-text: oklch(0.98 0.005 195);
+
+      /* Errors */
+      --error-text: oklch(0.70 0.16 25);
+      --error-bg: oklch(0.22 0.03 25);
+      --error-border: oklch(0.30 0.05 25);
+
+      /* Toggle */
+      --toggle-bg: oklch(0.30 0.012 195);
+      --toggle-active: oklch(0.60 0.14 195);
+      --toggle-knob: oklch(0.92 0.008 195);
+
+      /* Links / icon buttons */
+      --github-link: oklch(0.60 0.010 195);
+      --github-link-hover: oklch(0.92 0.008 195);
+      --theme-btn-color: oklch(0.60 0.010 195);
+      --theme-btn-hover: oklch(0.92 0.008 195);
+
+      /* Parsed JSON indicator — background tint only, no border-left */
+      --parsed-bg: oklch(0.22 0.03 80);
+      --parsed-badge: oklch(0.75 0.10 80);
+      --parsed-badge-bg: oklch(0.26 0.04 80);
     }
+
     :root.light {
       color-scheme: light;
-      --bg-body: #f8fafc;
-      --bg-header: #e2e8f0;
-      --bg-input: #ffffff;
-      --bg-button: #e2e8f0;
-      --bg-button-hover: #cbd5e1;
-      --bg-primary: #2563eb;
-      --bg-primary-hover: #1d4ed8;
-      --border: #cbd5e1;
-      --border-button: #94a3b8;
-      --border-search-focus: #2563eb;
-      --text: #1e293b;
-      --text-secondary: #475569;
-      --text-muted: #64748b;
-      --text-label: #334155;
-      --text-placeholder: #94a3b8;
-      --resizer: #cbd5e1;
-      --resizer-active: #2563eb;
-      --tree-line: #cbd5e1;
-      --arrow: #64748b;
-      --key: #1d4ed8;
-      --colon: #64748b;
-      --string: #16a34a;
-      --number: #b45309;
-      --boolean: #be185d;
-      --null: #64748b;
-      --symbol: #7c3aed;
-      --meta: #94a3b8;
-      --highlight-bg: #fbbf24;
-      --highlight-text: #1e293b;
-      --highlight-current-bg: #2563eb;
-      --highlight-current-text: #fff;
-      --error-text: #dc2626;
-      --error-bg: rgba(220,38,38,0.08);
-      --error-border: rgba(220,38,38,0.2);
-      --toggle-bg: #cbd5e1;
-      --toggle-active: #2563eb;
-      --toggle-knob: #ffffff;
-      --github-link: #64748b;
-      --github-link-hover: #1e293b;
-      --theme-btn-color: #64748b;
-      --theme-btn-hover: #1e293b;
-      --parsed-bg: rgba(245,158,11,0.07);
-      --parsed-border: #d97706;
-      --parsed-badge: #92400e;
-      --parsed-badge-bg: rgba(217,119,6,0.12);
+      --bg-body: oklch(0.97 0.005 195);
+      --bg-header: oklch(0.93 0.008 195);
+      --bg-input: oklch(0.99 0.003 195);
+      --bg-button: oklch(0.93 0.008 195);
+      --bg-button-hover: oklch(0.88 0.010 195);
+      --bg-primary: oklch(0.50 0.14 195);
+      --bg-primary-hover: oklch(0.45 0.14 195);
+
+      --border: oklch(0.85 0.008 195);
+      --border-button: oklch(0.72 0.008 195);
+      --border-search-focus: oklch(0.50 0.14 195);
+
+      --text: oklch(0.22 0.012 195);
+      --text-secondary: oklch(0.42 0.010 195);
+      --text-muted: oklch(0.55 0.008 195);
+      --text-label: oklch(0.30 0.010 195);
+      --text-placeholder: oklch(0.65 0.008 195);
+
+      --resizer: oklch(0.85 0.008 195);
+      --resizer-active: oklch(0.50 0.14 195);
+
+      --tree-line: oklch(0.82 0.008 195);
+      --arrow: oklch(0.50 0.010 195);
+
+      --key: oklch(0.42 0.12 195);
+      --colon: oklch(0.50 0.008 195);
+      --string: oklch(0.42 0.12 155);
+      --number: oklch(0.48 0.10 80);
+      --boolean: oklch(0.45 0.10 340);
+      --null: oklch(0.55 0.02 195);
+      --symbol: oklch(0.45 0.10 285);
+      --meta: oklch(0.62 0.008 195);
+
+      --highlight-bg: oklch(0.85 0.12 80);
+      --highlight-text: oklch(0.20 0.01 195);
+      --highlight-current-bg: oklch(0.50 0.14 195);
+      --highlight-current-text: oklch(0.98 0.005 195);
+
+      --error-text: oklch(0.48 0.16 25);
+      --error-bg: oklch(0.95 0.03 25);
+      --error-border: oklch(0.85 0.05 25);
+
+      --toggle-bg: oklch(0.85 0.008 195);
+      --toggle-active: oklch(0.50 0.14 195);
+      --toggle-knob: oklch(0.99 0.003 195);
+
+      --github-link: oklch(0.50 0.010 195);
+      --github-link-hover: oklch(0.22 0.012 195);
+      --theme-btn-color: oklch(0.50 0.010 195);
+      --theme-btn-hover: oklch(0.22 0.012 195);
+
+      --parsed-bg: oklch(0.95 0.03 80);
+      --parsed-badge: oklch(0.45 0.10 80);
+      --parsed-badge-bg: oklch(0.90 0.04 80);
     }
+
+    /* ===== Base ===== */
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+      font-family: var(--font-mono);
       background: var(--bg-body);
       color: var(--text);
       height: 100vh;
       overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
 
     /* ===== Header ===== */
@@ -124,14 +165,20 @@
       flex-shrink: 0;
     }
     .header h1 {
+      font-family: var(--font-ui);
       font-size: 15px;
       font-weight: 600;
       color: var(--text);
       white-space: nowrap;
+      letter-spacing: -0.01em;
+    }
+    .header h1 span {
+      color: var(--text-muted);
+      font-weight: 400;
     }
     .header .actions {
       display: flex;
-      gap: 12px;
+      gap: 8px;
       margin-left: auto;
       align-items: center;
     }
@@ -142,18 +189,20 @@
       cursor: pointer;
       display: flex;
       align-items: center;
-      padding: 4px;
+      padding: 6px;
       border-radius: 6px;
-      transition: color 0.2s;
+      transition: color 0.15s ease-out;
     }
     .theme-toggle:hover {
       color: var(--theme-btn-hover);
     }
     .github-link {
       color: var(--github-link);
-      transition: color 0.2s;
+      transition: color 0.15s ease-out;
       display: flex;
       align-items: center;
+      padding: 4px;
+      border-radius: 6px;
     }
     .github-link:hover {
       color: var(--github-link-hover);
@@ -180,23 +229,27 @@
       display: flex;
       align-items: center;
       padding: 0 16px;
-      gap: 10px;
+      gap: 8px;
       flex-shrink: 0;
+      font-family: var(--font-ui);
       font-size: 13px;
       color: var(--text-secondary);
     }
     .panel-header .label {
       font-weight: 600;
       color: var(--text-label);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
     /* ===== Resizer ===== */
     .resizer {
-      width: 5px;
+      width: 4px;
       background: var(--resizer);
       cursor: col-resize;
       flex-shrink: 0;
-      transition: background 0.15s;
+      transition: background 0.15s ease-out;
     }
     .resizer:hover, .resizer.active {
       background: var(--resizer-active);
@@ -209,9 +262,9 @@
       border: none;
       background: var(--bg-input);
       color: var(--text);
-      font-family: inherit;
+      font-family: var(--font-mono);
       font-size: 13px;
-      line-height: 1.6;
+      line-height: 1.65;
       padding: 16px;
       outline: none;
       tab-size: 2;
@@ -232,6 +285,7 @@
       flex-shrink: 0;
     }
     button {
+      font-family: var(--font-ui);
       border: 1px solid var(--border-button);
       background: var(--bg-button);
       color: var(--text);
@@ -239,16 +293,20 @@
       padding: 5px 10px;
       cursor: pointer;
       font-size: 12px;
-      font-family: inherit;
+      font-weight: 500;
       white-space: nowrap;
+      transition: background 0.12s ease-out, border-color 0.12s ease-out;
     }
     button:hover {
       background: var(--bg-button-hover);
     }
+    button:active {
+      transform: scale(0.98);
+    }
     button.primary {
       background: var(--bg-primary);
-      border-color: var(--bg-primary-hover);
-      color: #fff;
+      border-color: var(--bg-primary);
+      color: oklch(0.98 0.005 195);
     }
     button.primary:hover {
       background: var(--bg-primary-hover);
@@ -262,24 +320,26 @@
       margin-left: auto;
     }
     .search-wrap input {
+      font-family: var(--font-mono);
       border: 1px solid var(--border-button);
       background: var(--bg-input);
       color: var(--text);
       border-radius: 6px;
       padding: 5px 10px;
       font-size: 12px;
-      font-family: inherit;
       width: 180px;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
     }
     .search-wrap input:focus {
       border-color: var(--border-search-focus);
+      box-shadow: 0 0 0 2px oklch(0.60 0.14 195 / 0.15);
     }
     .search-wrap input::placeholder {
       color: var(--text-muted);
     }
     .search-count {
+      font-family: var(--font-ui);
       font-size: 11px;
       color: var(--text-muted);
       min-width: 50px;
@@ -294,6 +354,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      font-family: var(--font-ui);
       font-size: 12px;
       color: var(--text-secondary);
     }
@@ -314,7 +375,7 @@
       inset: 0;
       background: var(--toggle-bg);
       border-radius: 20px;
-      transition: background 0.2s;
+      transition: background 0.15s ease-out;
     }
     .toggle .slider::before {
       content: '';
@@ -325,7 +386,7 @@
       bottom: 3px;
       background: var(--toggle-knob);
       border-radius: 50%;
-      transition: transform 0.2s;
+      transition: transform 0.2s cubic-bezier(0.33, 1, 0.68, 1);
     }
     .toggle input:checked + .slider {
       background: var(--toggle-active);
@@ -339,7 +400,7 @@
       flex: 1;
       overflow: auto;
       padding: 16px;
-      line-height: 1.5;
+      line-height: 1.55;
       font-size: 13px;
     }
     .viewer .empty-state {
@@ -349,12 +410,19 @@
       justify-content: center;
       height: 100%;
       color: var(--text-placeholder);
+      font-family: var(--font-ui);
       font-size: 14px;
-      gap: 8px;
+      gap: 6px;
     }
     .viewer .empty-state .icon {
-      font-size: 36px;
-      opacity: 0.5;
+      font-family: var(--font-mono);
+      font-size: 32px;
+      opacity: 0.4;
+      font-weight: 500;
+    }
+    .viewer .empty-state .hint {
+      font-size: 12px;
+      color: var(--text-muted);
     }
     .viewer .error-msg {
       color: var(--error-text);
@@ -378,6 +446,8 @@
       content: '\25B8';
       margin-right: 6px;
       color: var(--arrow);
+      display: inline-block;
+      transition: transform 0.12s ease-out;
     }
     details[open] > summary::before {
       content: '\25BE';
@@ -397,17 +467,18 @@
     .symbol { color: var(--symbol); }
     .meta { color: var(--meta); }
 
-    /* ===== Parsed JSON string highlight ===== */
+    /* ===== Parsed JSON string highlight — background tint, no border-left ===== */
     .parsed-json {
       background: var(--parsed-bg);
-      border-left: 2px solid var(--parsed-border);
       border-radius: 4px;
-      padding: 2px 0 2px 8px;
+      padding: 2px 6px 2px 8px;
       margin: 2px 0;
     }
     .parsed-json > summary::after {
       content: 'parsed';
+      font-family: var(--font-ui);
       font-size: 10px;
+      font-weight: 500;
       color: var(--parsed-badge);
       background: var(--parsed-badge-bg);
       border-radius: 3px;
@@ -426,33 +497,62 @@
     mark.highlight.current {
       background: var(--highlight-current-bg);
       color: var(--highlight-current-text);
-      box-shadow: 0 0 0 2px rgba(88,166,255,0.4);
+      box-shadow: 0 0 0 2px oklch(0.60 0.14 195 / 0.35);
     }
 
     /* ===== Status Bar ===== */
     .status-bar {
-      height: 24px;
+      height: 26px;
       background: var(--bg-header);
       border-top: 1px solid var(--border);
       display: flex;
       align-items: center;
       padding: 0 16px;
+      font-family: var(--font-ui);
       font-size: 11px;
       color: var(--text-muted);
       gap: 16px;
       flex-shrink: 0;
     }
+
+    /* ===== Scrollbar ===== */
+    .viewer::-webkit-scrollbar,
+    .input-area::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .viewer::-webkit-scrollbar-track,
+    .input-area::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .viewer::-webkit-scrollbar-thumb,
+    .input-area::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+    .viewer::-webkit-scrollbar-thumb:hover,
+    .input-area::-webkit-scrollbar-thumb:hover {
+      background: var(--border-button);
+    }
+
+    /* ===== Reduced Motion ===== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1>{ } JSON Formatter</h1>
+    <h1><span>{ }</span> JSON Formatter</h1>
     <div class="actions">
       <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode">
-        <svg id="icon-moon" height="20" width="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg id="icon-moon" height="18" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
         </svg>
-        <svg id="icon-sun" height="20" width="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+        <svg id="icon-sun" height="18" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
           <circle cx="12" cy="12" r="5"/>
           <line x1="12" y1="1" x2="12" y2="3"/>
           <line x1="12" y1="21" x2="12" y2="23"/>
@@ -465,7 +565,7 @@
         </svg>
       </button>
       <a href="https://github.com/zjy4fun/json-open" target="_blank" rel="noopener noreferrer" class="github-link" title="View on GitHub">
-        <svg height="24" width="24" viewBox="0 0 16 16" fill="currentColor">
+        <svg height="22" width="22" viewBox="0 0 16 16" fill="currentColor">
           <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
         </svg>
       </a>
@@ -477,8 +577,8 @@
     <div class="panel panel-left" id="panel-left">
       <div class="panel-header">
         <span class="label">Input</span>
-        <button id="btn-copy">📋 Copy</button>
-        <button id="btn-share">🔗 Share</button>
+        <button id="btn-copy">Copy</button>
+        <button id="btn-share">Share</button>
       </div>
       <textarea class="input-area" id="json-input" placeholder="Paste or type JSON here..." spellcheck="false"></textarea>
     </div>
@@ -511,7 +611,7 @@
         <div class="empty-state">
           <div class="icon">{ }</div>
           <div>Paste or type JSON on the left</div>
-          <div style="font-size:12px">It will format automatically</div>
+          <div class="hint">It will format automatically</div>
         </div>
       </div>
     </div>
@@ -681,7 +781,7 @@
     function doFormat() {
       var input = jsonInput.value.trim()
       if (!input) {
-        viewer.innerHTML = '<div class="empty-state"><div class="icon">{ }</div><div>Paste or type JSON on the left</div><div style="font-size:12px">It will format automatically</div></div>'
+        viewer.innerHTML = '<div class="empty-state"><div class="icon">{ }</div><div>Paste or type JSON on the left</div><div class="hint">It will format automatically</div></div>'
         statusInfo.textContent = 'Ready'
         statusSize.textContent = ''
         toggleWrap.classList.add('hidden')
@@ -732,7 +832,7 @@
       if (!text) return
       navigator.clipboard.writeText(text).then(function () {
         var orig = btnCopy.textContent
-        btnCopy.textContent = '✅ Copied!'
+        btnCopy.textContent = 'Copied!'
         setTimeout(function () { btnCopy.textContent = orig }, 1500)
       })
     })
@@ -758,7 +858,7 @@
       var url = location.origin + location.pathname + '#json=' + encoded
       navigator.clipboard.writeText(url).then(function () {
         var orig = btnShare.textContent
-        btnShare.textContent = '✅ Link copied!'
+        btnShare.textContent = 'Link copied!'
         statusInfo.textContent = 'Share link copied (' + formatBytes(url.length) + ')'
         setTimeout(function () { btnShare.textContent = orig }, 2000)
       })
