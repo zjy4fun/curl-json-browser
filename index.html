@@ -186,12 +186,12 @@
       color: inherit;
       font: inherit;
       cursor: pointer;
-      padding: 2px 4px;
+      padding: 0;
       border-radius: 6px;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
       transition: background 0.15s ease-out, color 0.15s ease-out;
+      line-height: 1;
     }
     .home-btn:hover {
       background: var(--bg-button-hover);
@@ -571,7 +571,7 @@
 <body>
   <div class="header">
     <h1>
-      <button class="home-btn" id="home-btn" title="Back to home and clear shared JSON">
+      <button type="button" class="home-btn" id="home-btn" aria-label="Back to home and clear shared JSON">
         <span>{ }</span>
       </button>
       JSON Formatter
