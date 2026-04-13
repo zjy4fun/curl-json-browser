@@ -652,7 +652,9 @@
     <span id="status-size" style="margin-left:auto"></span>
   </div>
 
-  <script>
+  <script type="module">
+    import { resolveInitialTheme } from './web/theme-preference.js'
+
     // ===== Utility =====
     function escapeHtml(str) {
       return str
@@ -1151,9 +1153,10 @@
         }
       }
 
-      // Load saved preference, default to dark
-      var saved = localStorage.getItem('json-open-theme') || 'dark'
-      applyTheme(saved)
+      var saved = localStorage.getItem('json-open-theme')
+      var systemPrefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      var initialTheme = resolveInitialTheme({ savedTheme: saved, systemPrefersDark: systemPrefersDark })
+      applyTheme(initialTheme)
 
       themeBtn.addEventListener('click', function () {
         var isLight = root.classList.contains('light')
