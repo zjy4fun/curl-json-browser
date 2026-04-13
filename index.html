@@ -652,8 +652,9 @@
     <span id="status-size" style="margin-left:auto"></span>
   </div>
 
-  <script type="module">
-    import { resolveInitialTheme } from './web/theme-preference.js'
+  <script src="./web/theme-preference.js"></script>
+  <script>
+    var resolveInitialTheme = window.JsonOpenThemePreference.resolveInitialTheme
 
     // ===== Utility =====
     function escapeHtml(str) {
