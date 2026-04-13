@@ -573,8 +573,8 @@
     <h1>
       <button class="home-btn" id="home-btn" title="Back to home and clear shared JSON">
         <span>{ }</span>
-        JSON Formatter
       </button>
+      JSON Formatter
     </h1>
     <div class="actions">
       <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode">
@@ -896,12 +896,7 @@
 
     // ===== Home =====
     homeBtn.addEventListener('click', function () {
-      history.pushState({}, '', location.pathname + location.search)
-      jsonInput.value = ''
-      currentParsed = null
-      currentDeepParsed = null
-      deepParseToggle.checked = false
-      doFormat()
+      window.location.assign(location.origin + location.pathname + location.search)
     })
 
     // Input behavior
