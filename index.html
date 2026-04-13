@@ -171,10 +171,34 @@
       color: var(--text);
       white-space: nowrap;
       letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .header h1 span {
       color: var(--text-muted);
       font-weight: 400;
+    }
+    .home-btn {
+      appearance: none;
+      background: none;
+      border: none;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      padding: 2px 4px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s ease-out, color 0.15s ease-out;
+    }
+    .home-btn:hover {
+      background: var(--bg-button-hover);
+    }
+    .home-btn:focus-visible {
+      outline: 2px solid var(--border-search-focus);
+      outline-offset: 1px;
     }
     .header .actions {
       display: flex;
@@ -546,7 +570,12 @@
 </head>
 <body>
   <div class="header">
-    <h1><span>{ }</span> JSON Formatter</h1>
+    <h1>
+      <button class="home-btn" id="home-btn" title="Back to home and clear shared JSON">
+        <span>{ }</span>
+        JSON Formatter
+      </button>
+    </h1>
     <div class="actions">
       <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode">
         <svg id="icon-moon" height="18" width="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -773,6 +802,7 @@
     var statusSize = document.getElementById('status-size')
     var panelLeft = document.getElementById('panel-left')
     var resizer = document.getElementById('resizer')
+    var homeBtn = document.getElementById('home-btn')
 
     var currentParsed = null
     var currentDeepParsed = null
@@ -862,6 +892,16 @@
         statusInfo.textContent = 'Share link copied (' + formatBytes(url.length) + ')'
         setTimeout(function () { btnShare.textContent = orig }, 2000)
       })
+    })
+
+    // ===== Home =====
+    homeBtn.addEventListener('click', function () {
+      history.pushState({}, '', location.pathname + location.search)
+      jsonInput.value = ''
+      currentParsed = null
+      currentDeepParsed = null
+      deepParseToggle.checked = false
+      doFormat()
     })
 
     // Input behavior
