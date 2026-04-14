@@ -336,6 +336,20 @@
     button.primary:hover {
       background: var(--bg-primary-hover);
     }
+    .shortcut-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 8px;
+      padding: 1px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border-button);
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      line-height: 1.4;
+      vertical-align: middle;
+    }
 
     /* ===== Search ===== */
     .search-wrap {
@@ -607,6 +621,10 @@
     <div class="panel panel-left" id="panel-left">
       <div class="panel-header">
         <span class="label">Input</span>
+        <button id="btn-format" title="Format (Cmd/Ctrl + Enter)">
+          Format
+          <span class="shortcut-hint" aria-hidden="true">⌘↵ / Ctrl↵</span>
+        </button>
         <button id="btn-copy">Copy</button>
         <button id="btn-share">Share</button>
       </div>
@@ -641,7 +659,7 @@
         <div class="empty-state">
           <div class="icon">{ }</div>
           <div>Paste or type JSON on the left</div>
-          <div class="hint">It will format automatically</div>
+          <div class="hint">Click Format to preview it</div>
         </div>
       </div>
     </div>
@@ -789,6 +807,7 @@
     // ===== Elements =====
     var jsonInput = document.getElementById('json-input')
     var viewer = document.getElementById('viewer')
+    var btnFormat = document.getElementById('btn-format')
     var btnCopy = document.getElementById('btn-copy')
     var btnShare = document.getElementById('btn-share')
     var btnExpandAll = document.getElementById('expand-all')
@@ -808,16 +827,20 @@
     var currentParsed = null
     var currentDeepParsed = null
 
-    // ===== Core: Format =====
-    function doFormat() {
+    // ===== Core: Parse / Preview / Format =====
+    function parseAndRender(options) {
+      options = options || {}
+      var shouldFormatInput = !!options.formatInput
       var input = jsonInput.value.trim()
       if (!input) {
-        viewer.innerHTML = '<div class="empty-state"><div class="icon">{ }</div><div>Paste or type JSON on the left</div><div class="hint">It will format automatically</div></div>'
+        viewer.innerHTML = '<div class="empty-state"><div class="icon">{ }</div><div>Paste or type JSON on the left</div><div class="hint">Click Format to preview it</div></div>'
         statusInfo.textContent = 'Ready'
         statusSize.textContent = ''
         toggleWrap.classList.add('hidden')
+        currentParsed = null
+        currentDeepParsed = null
         clearSearch()
-        return
+        return false
       }
 
       try {
@@ -833,19 +856,28 @@
 
         renderView()
 
-        // Also auto-format the input
-        jsonInput.value = JSON.stringify(currentParsed, null, 2)
-
-        var keys = 0
-        try { keys = JSON.stringify(currentParsed).length } catch (e) {}
-        statusInfo.textContent = 'Formatted successfully'
+        if (shouldFormatInput) {
+          jsonInput.value = JSON.stringify(currentParsed, null, 2)
+          statusInfo.textContent = 'Formatted successfully'
+        } else {
+          statusInfo.textContent = 'Live preview updated'
+        }
         statusSize.textContent = formatBytes(new Blob([input]).size)
+        return true
       } catch (e) {
+        currentParsed = null
+        currentDeepParsed = null
         viewer.innerHTML = '<div class="error-msg"><b>Parse Error</b><br>' + escapeHtml(e.message) + '</div>'
         statusInfo.textContent = 'Parse error'
-        statusSize.textContent = ''
+        statusSize.textContent = formatBytes(new Blob([input]).size)
         toggleWrap.classList.add('hidden')
+        clearSearch()
+        return false
       }
+    }
+
+    function doFormat() {
+      parseAndRender({ formatInput: true })
     }
 
     function renderView() {
@@ -856,6 +888,10 @@
       clearSearch()
       if (searchInput.value.trim()) doSearch()
     }
+
+    btnFormat.addEventListener('click', function () {
+      doFormat()
+    })
 
     // ===== Buttons =====
     btnCopy.addEventListener('click', function () {
@@ -902,6 +938,13 @@
 
     // Input behavior
     jsonInput.addEventListener('keydown', function (e) {
+      // Cmd/Ctrl + Enter -> format input
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault()
+        doFormat()
+        return
+      }
+
       // Tab support
       if (e.key === 'Tab') {
         e.preventDefault()
@@ -1103,13 +1146,9 @@
       }
     })
 
-    // ===== Auto format on input =====
-    var inputDebounceTimer
+    // ===== Manual input with live preview =====
     jsonInput.addEventListener('input', function () {
-      clearTimeout(inputDebounceTimer)
-      inputDebounceTimer = setTimeout(function () {
-        doFormat()
-      }, 200)
+      parseAndRender({ formatInput: false })
     })
 
     // ===== Load from URL hash =====
