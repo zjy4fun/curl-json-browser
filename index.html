@@ -659,7 +659,6 @@
         <div class="empty-state">
           <div class="icon">{ }</div>
           <div>Paste or type JSON on the left</div>
-          <div class="hint">Click Format to preview it</div>
         </div>
       </div>
     </div>
@@ -833,7 +832,7 @@
       var shouldFormatInput = !!options.formatInput
       var input = jsonInput.value.trim()
       if (!input) {
-        viewer.innerHTML = '<div class="empty-state"><div class="icon">{ }</div><div>Paste or type JSON on the left</div><div class="hint">Click Format to preview it</div></div>'
+        viewer.innerHTML = '<div class="empty-state"><div class="icon">{ }</div><div>Paste or type JSON on the left</div></div>'
         statusInfo.textContent = 'Ready'
         statusSize.textContent = ''
         toggleWrap.classList.add('hidden')
